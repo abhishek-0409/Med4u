@@ -1,0 +1,13 @@
+node_modules/
+.expo/
+.vscode/
+dist/
+build/
+
+# Local env files
+.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db

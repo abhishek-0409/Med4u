@@ -1,0 +1,30 @@
+export const colors = {
+  background: "#EDF3F4",
+  backgroundElevated: "#F6FAFB",
+  card: "#FFFFFF",
+  border: "#DCE8EB",
+  primary: "#2FA8A1",
+  primaryDark: "#1D7B7E",
+  primaryLight: "#94E0DA",
+  secondary: "#7EB9D2",
+  text: "#1E2F3E",
+  textMuted: "#738392",
+  textSubtle: "#8B9AA6",
+  white: "#FFFFFF",
+  success: "#2AA67A",
+  warning: "#F5A524",
+  danger: "#EF5A5A",
+  shadow: "#0D2C3B",
+  overlay: "rgba(9, 34, 59, 0.45)",
+  inputBackground: "#F8FCFD",
+  chip: "#E9F7F7",
+  mint: "#D6EFEE",
+  aqua: "#CBE7F0",
+  darkCard: "#2C8F8D",
+};
+
+export const gradients = {
+  page: ["#EDF4F4", "#F4F8FB", "#F8FBFC"],
+  hero: ["#8FCFCC", "#8BC4DA", "#BDE0EE"],
+  cta: ["#2FA8A1", "#247D95"],
+} as const;
