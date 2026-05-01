@@ -4,30 +4,35 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
+  TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { CheckCircle2, ChevronRight, Clock3, ShieldCheck, Stethoscope } from "lucide-react-native";
-import { Button } from "../../components/ui/Button";
-import { Input } from "../../components/ui/Input";
+import { Stethoscope, ChevronRight } from "lucide-react-native";
 import { useAuth } from "../../hooks/useAuth";
-import { colors } from "../../theme/colors";
-import { radius, spacing } from "../../theme/spacing";
-import { typography } from "../../theme/typography";
 import { AuthStackParamList } from "../../types/navigation";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Login">;
+
+const TEAL = "#4A9E96";
+const TEAL_DARK = "#3A8880";
+const TEAL_LIGHT = "#EAF4F3";
+const BG = "#DFF0EE";
 
 export function LoginScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const [phone, setPhone] = useState("");
   const { requestOtp, isLoading, error } = useAuth();
 
-  const sanitizedPhone = useMemo(() => phone.replace(/\D/g, "").slice(0, 10), [phone]);
+  const sanitizedPhone = useMemo(
+    () => phone.replace(/\D/g, "").slice(0, 10),
+    [phone]
+  );
   const isValidPhone = sanitizedPhone.length === 10;
 
   const onContinue = async () => {
@@ -35,7 +40,6 @@ export function LoginScreen({ navigation }: Props) {
       Alert.alert("Invalid Number", "Please enter a valid 10-digit phone number.");
       return;
     }
-
     try {
       await requestOtp(sanitizedPhone);
       navigation.navigate("OTP", { phone: sanitizedPhone });
@@ -45,210 +49,269 @@ export function LoginScreen({ navigation }: Props) {
   };
 
   return (
-    <LinearGradient colors={["#E4F2F1", "#E9F1F8", "#F7FBFD"]} style={styles.gradient}>
+    <View style={[styles.root, { paddingTop: insets.top }]}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={[styles.keyboardView, { paddingTop: insets.top + spacing.sm }]}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.kav}
       >
-        <View style={styles.hero}>
-          <View style={styles.brandRow}>
-            <View style={styles.iconWrap}>
-              <Stethoscope color={colors.primaryDark} size={22} />
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* ── Brand ── */}
+          <View style={styles.brandSection}>
+            <View style={styles.logoCircle}>
+              <Stethoscope color={TEAL} size={28} strokeWidth={1.8} />
             </View>
-            <Text style={styles.brandText}>Med4U</Text>
+            <Text style={styles.brandName}>Med4U</Text>
           </View>
 
-          <Text style={styles.title}>Healthcare, reimagined.</Text>
-          <Text style={styles.subtitle}>
-            Login with your phone number to access doctors, lab tests, medicines and digital prescriptions.
-          </Text>
+          {/* ── Card ── */}
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Login With Phone</Text>
+            <Text style={styles.cardSub}>
+              We will send a one-time password to verify your account.
+            </Text>
 
-          <View style={styles.badgeRow}>
-            <InfoBadge icon={<ShieldCheck size={13} color={colors.primaryDark} />} text="Safe Login" />
-            <InfoBadge icon={<Clock3 size={13} color={colors.primaryDark} />} text="30 sec OTP" />
-            <InfoBadge icon={<CheckCircle2 size={13} color={colors.primaryDark} />} text="Trusted Care" />
-          </View>
-        </View>
+            {/* Label */}
+            <Text style={styles.label}>Mobile Number</Text>
 
-        <View style={styles.formCard}>
-          <Text style={styles.formTitle}>Continue With Phone</Text>
-          <Text style={styles.formSub}>We will send a one-time password to verify your account.</Text>
-
-          <View style={styles.phoneRow}>
-            <View style={styles.countryCode}>
-              <Text style={styles.countryCodeText}>+91</Text>
+            {/* Phone Input Row */}
+            <View style={styles.phoneRow}>
+              <View style={styles.countryBox}>
+                <Text style={styles.countryText}>+91</Text>
+              </View>
+              <TextInput
+                style={[
+                  styles.phoneInput,
+                  isValidPhone && styles.phoneInputValid,
+                ]}
+                value={sanitizedPhone}
+                onChangeText={setPhone}
+                placeholder="Enter 10-digit"
+                placeholderTextColor="#B0BEC5"
+                keyboardType="phone-pad"
+                maxLength={10}
+                returnKeyType="done"
+                onSubmitEditing={onContinue}
+              />
             </View>
-            <Input
-              label="Mobile Number"
-              value={sanitizedPhone}
-              onChangeText={setPhone}
-              placeholder="Enter 10-digit number"
-              keyboardType="phone-pad"
-              maxLength={10}
-              style={styles.inputWrap}
-              rightElement={
-                isValidPhone ? <CheckCircle2 size={18} color={colors.success} /> : undefined
-              }
-            />
-          </View>
 
-          <View style={styles.helperRow}>
+            {/* Helper */}
             <Text style={styles.helperText}>
               OTP will be sent to +91 {sanitizedPhone || "XXXXXXXXXX"}
             </Text>
+
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+            {/* Send OTP Button */}
+            <TouchableOpacity
+              style={[
+                styles.otpButton,
+                (!isValidPhone || isLoading) && styles.otpButtonDisabled,
+              ]}
+              onPress={onContinue}
+              disabled={!isValidPhone || isLoading}
+              activeOpacity={0.85}
+            >
+              <ChevronRight size={20} color="#fff" style={{ marginRight: 6 }} />
+              <Text style={styles.otpButtonText}>
+                {isLoading ? "Sending..." : "Send OTP"}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Help */}
+            <Pressable
+              style={({ pressed }) => [styles.helpBtn, pressed && { opacity: 0.6 }]}
+              onPress={() =>
+                Alert.alert(
+                  "Need Help?",
+                  "Please contact support@med4u.in for login assistance."
+                )
+              }
+            >
+              <Text style={styles.helpText}>Need help with login?</Text>
+            </Pressable>
           </View>
-
-          {error ? <Text style={styles.error}>{error}</Text> : null}
-
-          <Button
-            title="Send OTP"
-            loading={isLoading}
-            disabled={!isValidPhone}
-            leftIcon={<ChevronRight size={18} color={colors.white} />}
-            onPress={onContinue}
-          />
-
-          <Pressable style={({ pressed }) => [styles.helpButton, pressed && { opacity: 0.75 }]}>
-            <Text style={styles.helpText}>Need help with login?</Text>
-          </Pressable>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
-    </LinearGradient>
-  );
-}
-
-function InfoBadge({ icon, text }: { icon: React.ReactNode; text: string }) {
-  return (
-    <View style={styles.badge}>
-      {icon}
-      <Text style={styles.badgeText}>{text}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  gradient: {
+  root: {
+    flex: 1,
+    backgroundColor: BG,
+  },
+
+  kav: {
     flex: 1,
   },
-  keyboardView: {
-    flex: 1,
-    justifyContent: "space-between",
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xxl,
-    gap: spacing.lg,
-  },
-  hero: {
-    gap: spacing.sm,
-  },
-  brandRow: {
-    flexDirection: "row",
+
+  scroll: {
+    flexGrow: 1,
+    justifyContent: "center",
     alignItems: "center",
-    gap: spacing.xs,
-    marginBottom: spacing.xs,
+    paddingHorizontal: 24,
+    paddingVertical: 48,
+    gap: 36,
   },
-  iconWrap: {
-    width: 42,
-    height: 42,
-    borderRadius: radius.pill,
+
+  // ── Brand ──
+  brandSection: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 12,
+  },
+
+  logoCircle: {
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.border,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  brandText: {
-    ...typography.title,
-    color: colors.primaryDark,
-  },
-  title: {
-    ...typography.h2,
+
+  brandName: {
     fontSize: 30,
-    lineHeight: 36,
+    fontWeight: "700",
+    color: TEAL,
+    letterSpacing: -0.5,
   },
-  subtitle: {
-    ...typography.body,
-    maxWidth: "92%",
-    color: colors.text,
+
+  // ── Card ──
+  card: {
+    width: "100%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 22,
+    padding: 24,
+    gap: 14,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.09,
+    shadowRadius: 18,
+    elevation: 7,
   },
-  badgeRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.xs,
-    marginTop: spacing.xs,
+
+  cardTitle: {
+    fontSize: 23,
+    fontWeight: "700",
+    color: "#1C2B2A",
+    textAlign: "center",
   },
-  badge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    paddingHorizontal: spacing.xs,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-    backgroundColor: colors.chip,
-    borderWidth: 1,
-    borderColor: colors.border,
+
+  cardSub: {
+    fontSize: 13.5,
+    color: "#78909C",
+    textAlign: "center",
+    lineHeight: 20,
   },
-  badgeText: {
-    ...typography.caption,
-    color: colors.primaryDark,
+
+  label: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#546E7A",
+    textAlign: "center",
   },
-  formCard: {
-    backgroundColor: colors.white,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    gap: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  formTitle: {
-    ...typography.h3,
-    fontSize: 22,
-  },
-  formSub: {
-    ...typography.caption,
-    color: colors.textSubtle,
-    marginTop: -4,
-  },
+
+  // ── Phone ──
   phoneRow: {
     flexDirection: "row",
-    alignItems: "flex-end",
-    gap: spacing.xs,
+    gap: 8,
+    alignItems: "center",
   },
-  countryCode: {
-    minHeight: 56,
-    borderRadius: radius.md,
-    backgroundColor: colors.inputBackground,
-    borderWidth: 1,
-    borderColor: colors.border,
+
+  countryBox: {
+    height: 56,
+    paddingHorizontal: 18,
+    borderRadius: 14,
+    backgroundColor: "#F0F7F6",
+    borderWidth: 1.5,
+    borderColor: "#C8DFDD",
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: spacing.md,
-    marginBottom: 1,
   },
-  countryCodeText: {
-    ...typography.bodyBold,
-    color: colors.primaryDark,
+
+  countryText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: TEAL_DARK,
   },
-  inputWrap: {
+
+  phoneInput: {
     flex: 1,
+    height: 56,
+    borderRadius: 14,
+    backgroundColor: "#F0F7F6",
+    borderWidth: 1.5,
+    borderColor: "#C8DFDD",
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: "#1C2B2A",
   },
-  helperRow: {
-    marginTop: -8,
+
+  phoneInputValid: {
+    borderColor: TEAL,
+    backgroundColor: TEAL_LIGHT,
   },
+
   helperText: {
-    ...typography.caption,
-    color: colors.textSubtle,
+    fontSize: 12,
+    color: "#90A4AE",
+    marginTop: -4,
   },
-  error: {
-    ...typography.caption,
-    color: colors.danger,
+
+  errorText: {
+    fontSize: 12,
+    color: "#E53935",
   },
-  helpButton: {
+
+  // ── Button ──
+  otpButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: TEAL,
+    marginTop: 4,
+    shadowColor: TEAL,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+
+  otpButtonDisabled: {
+    backgroundColor: "#A8CCC9",
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+
+  otpButtonText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    letterSpacing: 0.3,
+  },
+
+  // ── Help ──
+  helpBtn: {
     alignSelf: "center",
     paddingVertical: 4,
   },
+
   helpText: {
-    ...typography.caption,
-    color: colors.primaryDark,
-    fontWeight: "600",
+    fontSize: 13,
+    fontWeight: "700",
+    color: TEAL,
   },
 });

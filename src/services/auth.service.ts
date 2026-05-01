@@ -15,8 +15,8 @@ export const authService = {
   },
   async verifyOtp(payload: VerifyOtpPayload): Promise<{ token: string; phone: string }> {
     await delay(900);
-    if (payload.otp.trim().length !== 4) {
-      throw new Error("Invalid OTP. Please enter the 4-digit OTP.");
+    if (payload.otp.trim().length !== 6) {
+      throw new Error("Invalid OTP. Please enter the 6-digit OTP.");
     }
     return {
       token: `session_${Date.now()}`,
