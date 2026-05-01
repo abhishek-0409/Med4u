@@ -231,31 +231,11 @@ Client emits:   join-room · offer · answer · ice-candidate · leave-room
 Server emits:   user-joined · offer · answer · ice-candidate · user-left · call-ended
 ```
 
----
-
-## 🧠 Architecture Decisions
-
-- **Offline-first**: API responses cached locally; app remains usable during network loss
-- **Token rotation**: Refresh tokens rotated on every use and stored server-side (hashed)
-- **WebRTC P2P**: Direct peer connection for low-latency video; TURN server fallback for NAT traversal
-- **Modular screens**: Each screen owns its own state slice — no prop drilling
-- **Typed API layer**: All API calls and responses fully typed with TypeScript interfaces
-
----
 
 ## 📸 Screenshots
 
 > Coming soon — add your screenshots here
 
----
-
-## 📫 Contact
-
-**Abhishek Kumar** — React Native Developer  
-📧 abhi040901@gmail.com  
-📍 Pune, India
-
----
 
 <div align="center">
   Built with care for real-world healthcare accessibility
