@@ -174,7 +174,7 @@ med4u/
 
 ```bash
 # Clone the repo
-git clone https://github.com/abhishek040901/med4u.git
+git clone https://github.com/abhishek-040901/med4u.git
 cd med4u
 
 # Install dependencies
@@ -188,15 +188,7 @@ cp .env.example .env
 npx expo start
 ```
 
-### Environment Variables
 
-```env
-EXPO_PUBLIC_API_URL=http://localhost:3000/api/v1
-EXPO_PUBLIC_SOCKET_URL=http://localhost:3000
-EXPO_PUBLIC_FIREBASE_API_KEY=your_key
-EXPO_PUBLIC_FIREBASE_PROJECT_ID=your_project
-EXPO_PUBLIC_STUN_SERVER=stun:stun.l.google.com:19302
-```
 
 ---
 
