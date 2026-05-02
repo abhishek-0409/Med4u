@@ -14,14 +14,14 @@ type Typography = {
 
 export const typography: Typography = {
   h1: {
-    fontSize: 32,
-    lineHeight: 38,
+    fontSize: 30,
+    lineHeight: 36,
     fontWeight: "700",
     color: colors.text,
   },
   h2: {
-    fontSize: 26,
-    lineHeight: 32,
+    fontSize: 24,
+    lineHeight: 30,
     fontWeight: "700",
     color: colors.text,
   },
@@ -38,14 +38,14 @@ export const typography: Typography = {
     color: colors.text,
   },
   body: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 14,
+    lineHeight: 21,
     fontWeight: "400",
     color: colors.textMuted,
   },
   bodyBold: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 14,
+    lineHeight: 21,
     fontWeight: "600",
     color: colors.text,
   },

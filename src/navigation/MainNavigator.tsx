@@ -10,7 +10,9 @@ import { CartScreen } from "../screens/medicine/CartScreen";
 import { BookTestScreen } from "../screens/lab/BookTestScreen";
 import { ReportsScreen } from "../screens/lab/ReportsScreen";
 import { PrescriptionScreen } from "../screens/prescription/PrescriptionScreen";
+import { AppSettingsScreen } from "../screens/profile/AppSettingsScreen";
 import { ProfileScreen } from "../screens/profile/ProfileScreen";
+import { ProfileSettingsScreen } from "../screens/profile/ProfileSettingsScreen";
 import { colors } from "../theme/colors";
 import { MainStackParamList } from "../types/navigation";
 
@@ -63,6 +65,16 @@ export function MainNavigator() {
         options={{ title: "Prescriptions" }}
       />
       <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: "My Profile" }} />
+      <Stack.Screen
+        name="ProfileSettings"
+        component={ProfileSettingsScreen}
+        options={{ title: "Profile Settings" }}
+      />
+      <Stack.Screen
+        name="AppSettings"
+        component={AppSettingsScreen}
+        options={{ title: "App Settings" }}
+      />
     </Stack.Navigator>
   );
 }

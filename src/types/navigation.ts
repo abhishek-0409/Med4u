@@ -15,9 +15,12 @@ export type MainStackParamList = {
   Reports: undefined;
   Prescription: undefined;
   Profile: undefined;
+  ProfileSettings: undefined;
+  AppSettings: undefined;
 };
 
 export type RootStackParamList = {
   AuthFlow: undefined;
+  Onboarding: undefined;
   MainFlow: undefined;
 };

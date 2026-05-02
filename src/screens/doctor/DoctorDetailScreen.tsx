@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { CalendarDays, MapPin, Star, Stethoscope } from "lucide-react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { Button } from "../../components/ui/Button";
+import { CalendarDays, MapPin, Star, Stethoscope, UserRound, Users, Video } from "lucide-react-native";
+import { AppButton } from "../../components/ui/AppButton";
+import { AppCard } from "../../components/ui/AppCard";
+import { FallbackImage } from "../../components/ui/FallbackImage";
 import { Loader } from "../../components/ui/Loader";
+import { SectionTitle } from "../../components/ui/SectionTitle";
 import { doctorService } from "../../services/doctor.service";
 import { colors } from "../../theme/colors";
 import { radius, spacing } from "../../theme/spacing";
@@ -42,46 +44,48 @@ export function DoctorDetailScreen({ navigation, route }: Props) {
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
-      <LinearGradient colors={["#8ECFCC", "#9ECFE0"]} style={styles.topCard}>
-        <Image source={{ uri: doctor.image }} style={styles.image} />
+      <AppCard style={styles.profileCard}>
+        <FallbackImage
+          uri={doctor.image}
+          style={styles.image}
+          fallbackIcon={<UserRound size={44} color={colors.primaryDark} />}
+          accessibilityLabel={`${doctor.name} profile picture`}
+        />
         <View style={styles.profileInfo}>
           <Text style={styles.name}>{doctor.name}</Text>
           <Text style={styles.specialization}>{doctor.specialization}</Text>
-          <View style={styles.row}>
-            <Star size={14} color={colors.warning} />
-            <Text style={styles.meta}>{doctor.rating.toFixed(1)}</Text>
-            <Text style={styles.dot}>-</Text>
-            <Text style={styles.meta}>{doctor.experienceYears} yrs exp</Text>
+          <View style={styles.metaRow}>
+            <View style={styles.metaPill}>
+              <Star size={14} color={colors.warning} />
+              <Text style={styles.metaPillText}>{doctor.rating.toFixed(1)}</Text>
+            </View>
+            <View style={styles.metaPill}>
+              <Stethoscope size={14} color={colors.primaryDark} />
+              <Text style={styles.metaPillText}>{doctor.experienceYears} yrs</Text>
+            </View>
           </View>
-          <View style={styles.row}>
+          <View style={styles.locationRow}>
             <MapPin size={14} color={colors.primaryDark} />
-            <Text style={styles.meta} numberOfLines={1}>
+            <Text style={styles.locationText} numberOfLines={2}>
               {doctor.location}
             </Text>
           </View>
         </View>
-      </LinearGradient>
+      </AppCard>
 
-      <View style={styles.whiteCard}>
-        <Text style={styles.sectionTitle}>Doctor Biography</Text>
-        <Text style={styles.aboutText}>{doctor.about}</Text>
-        <View style={styles.metricRow}>
-          <View style={styles.metricItem}>
-            <Stethoscope size={14} color={colors.primaryDark} />
-            <Text style={styles.metricText}>{doctor.experienceYears} years</Text>
-          </View>
-          <View style={styles.metricItem}>
-            <CalendarDays size={14} color={colors.primaryDark} />
-            <Text style={styles.metricText}>{doctor.patients} patients</Text>
-          </View>
-        </View>
+      <View style={styles.metricsRow}>
+        <MetricItem icon={<Users size={16} color={colors.primaryDark} />} label="Patients" value={doctor.patients} />
+        <MetricItem icon={<Star size={16} color={colors.warning} />} label="Rating" value={doctor.rating.toFixed(1)} />
+        <MetricItem icon={<CalendarDays size={16} color={colors.primaryDark} />} label="Fee" value={formatCurrency(doctor.fee)} />
       </View>
 
-      <View style={styles.whiteCard}>
-        <View style={styles.reviewTitleRow}>
-          <Text style={styles.sectionTitle}>Schedules</Text>
-          <Text style={styles.meta}>Oct 2026</Text>
-        </View>
+      <AppCard style={styles.cardBlock}>
+        <SectionTitle title="Doctor Biography" />
+        <Text style={styles.aboutText}>{doctor.about}</Text>
+      </AppCard>
+
+      <AppCard style={styles.cardBlock}>
+        <SectionTitle title="Available Schedule" subtitle="Choose a preferred time window" />
         <View style={styles.shiftRow}>
           {(["Morning", "Afternoon", "Evening"] as const).map((shift) => {
             const active = activeShift === shift;
@@ -97,7 +101,6 @@ export function DoctorDetailScreen({ navigation, route }: Props) {
           })}
         </View>
 
-        <Text style={styles.slotTitle}>Choose Time</Text>
         <View style={styles.slotRow}>
           {shiftSlots.length ? (
             shiftSlots.map((slot) => (
@@ -106,13 +109,13 @@ export function DoctorDetailScreen({ navigation, route }: Props) {
               </View>
             ))
           ) : (
-            <Text style={styles.meta}>No slots in this shift.</Text>
+            <Text style={styles.emptyText}>No slots in this shift.</Text>
           )}
         </View>
-      </View>
+      </AppCard>
 
-      <View style={styles.reviewCard}>
-        <Text style={styles.sectionTitle}>Reviews</Text>
+      <AppCard style={styles.cardBlock}>
+        <SectionTitle title="Patient Reviews" subtitle="Recent verified feedback" />
         {doctor.reviews.slice(0, 2).map((review) => (
           <View key={review.id} style={styles.reviewItem}>
             <View style={styles.reviewTop}>
@@ -122,25 +125,48 @@ export function DoctorDetailScreen({ navigation, route }: Props) {
             <Text style={styles.reviewComment}>{review.comment}</Text>
           </View>
         ))}
-      </View>
+      </AppCard>
 
-      <Pressable style={styles.feeCard}>
-        <Text style={styles.feeTitle}>Consultation Fee</Text>
+      <AppCard style={styles.feeCard}>
+        <View>
+          <Text style={styles.feeTitle}>Consultation Fee</Text>
+          <Text style={styles.feeSubtitle}>Video or clinic appointment</Text>
+        </View>
         <Text style={styles.feeAmount}>{formatCurrency(doctor.fee)}</Text>
-      </Pressable>
+      </AppCard>
 
       <View style={styles.actions}>
-        <Button
+        <AppButton
           title="Book Appointment"
+          leftIcon={<CalendarDays size={18} color={colors.white} />}
           onPress={() => navigation.navigate("BookDoctor", { doctorId: doctor.id })}
         />
-        <Button
+        <AppButton
           title="Video Consult"
           variant="outline"
+          leftIcon={<Video size={18} color={colors.primaryDark} />}
           onPress={() => navigation.navigate("VideoConsult", { doctorId: doctor.id })}
         />
       </View>
     </ScrollView>
+  );
+}
+
+function MetricItem({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <AppCard style={styles.metricItem}>
+      {icon}
+      <Text style={styles.metricValue}>{value}</Text>
+      <Text style={styles.metricLabel}>{label}</Text>
+    </AppCard>
   );
 }
 
@@ -151,83 +177,85 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.lg,
-    gap: spacing.sm,
+    gap: spacing.md,
     paddingBottom: spacing.xxl,
   },
-  topCard: {
-    borderRadius: radius.lg,
-    padding: spacing.sm,
+  profileCard: {
     flexDirection: "row",
     gap: spacing.md,
     alignItems: "center",
   },
   image: {
-    width: 104,
-    height: 126,
-    borderRadius: radius.md,
+    width: 110,
+    height: 132,
+    borderRadius: radius.lg,
+    backgroundColor: colors.border,
   },
   profileInfo: {
     flex: 1,
-    gap: 5,
-  },
-  whiteCard: {
-    backgroundColor: colors.white,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: spacing.sm,
+    gap: spacing.xs,
   },
   name: {
-    ...typography.title,
-    fontWeight: "700",
+    ...typography.h3,
   },
   specialization: {
-    ...typography.caption,
-    color: colors.textSubtle,
+    ...typography.body,
+    color: colors.label,
   },
-  row: {
+  metaRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.xs,
+  },
+  metaPill: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: spacing.xxs,
+    borderRadius: radius.sm,
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 6,
   },
-  meta: {
+  metaPillText: {
+    ...typography.caption,
+    color: colors.primaryDark,
+    fontWeight: "700",
+  },
+  locationRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.xs,
+  },
+  locationText: {
     ...typography.caption,
     color: colors.text,
+    flex: 1,
   },
-  dot: {
-    color: colors.textSubtle,
-  },
-  sectionTitle: {
-    ...typography.title,
-    fontSize: 16,
-  },
-  aboutText: {
-    ...typography.caption,
-    lineHeight: 18,
-    color: colors.text,
-  },
-  metricRow: {
+  metricsRow: {
     flexDirection: "row",
     gap: spacing.xs,
   },
   metricItem: {
-    flexDirection: "row",
+    flex: 1,
     alignItems: "center",
-    gap: 5,
-    paddingHorizontal: spacing.xs,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-    backgroundColor: colors.mint,
+    gap: spacing.xxs,
+    padding: spacing.sm,
   },
-  metricText: {
+  metricValue: {
+    ...typography.bodyBold,
+    color: colors.text,
+    textAlign: "center",
+  },
+  metricLabel: {
     ...typography.caption,
-    color: colors.primaryDark,
+    color: colors.textSubtle,
   },
-  reviewTitleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  cardBlock: {
+    gap: spacing.sm,
+  },
+  aboutText: {
+    ...typography.body,
+    color: colors.text,
   },
   shiftRow: {
     flexDirection: "row",
@@ -235,7 +263,7 @@ const styles = StyleSheet.create({
   },
   shiftChip: {
     flex: 1,
-    borderRadius: radius.pill,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.backgroundElevated,
@@ -243,20 +271,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   shiftChipActive: {
-    backgroundColor: colors.primaryDark,
-    borderColor: colors.primaryDark,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   shiftText: {
     ...typography.caption,
     color: colors.text,
+    fontWeight: "600",
   },
   shiftTextActive: {
     color: colors.white,
-    fontWeight: "600",
-  },
-  slotTitle: {
-    ...typography.caption,
-    color: colors.textSubtle,
   },
   slotRow: {
     flexDirection: "row",
@@ -264,33 +288,30 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   slotChip: {
-    backgroundColor: colors.aqua,
-    borderRadius: radius.pill,
+    backgroundColor: colors.primaryLight,
+    borderRadius: radius.sm,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 6,
+    paddingVertical: 7,
   },
   slotText: {
     ...typography.caption,
     color: colors.primaryDark,
-    fontWeight: "600",
+    fontWeight: "700",
   },
-  reviewCard: {
-    backgroundColor: colors.white,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    gap: spacing.xs,
+  emptyText: {
+    ...typography.caption,
+    color: colors.textSubtle,
   },
   reviewItem: {
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    gap: 4,
+    paddingTop: spacing.xs,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    gap: spacing.xxs,
   },
   reviewTop: {
     flexDirection: "row",
     justifyContent: "space-between",
+    gap: spacing.md,
   },
   reviewAuthor: {
     ...typography.bodyBold,
@@ -298,24 +319,28 @@ const styles = StyleSheet.create({
   reviewRating: {
     ...typography.caption,
     color: colors.warning,
+    fontWeight: "700",
   },
   reviewComment: {
     ...typography.caption,
     color: colors.text,
   },
   feeCard: {
-    borderRadius: radius.md,
-    backgroundColor: colors.mint,
-    padding: spacing.md,
+    backgroundColor: colors.primaryLight,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    gap: spacing.md,
   },
   feeTitle: {
     ...typography.bodyBold,
   },
+  feeSubtitle: {
+    ...typography.caption,
+    color: colors.label,
+  },
   feeAmount: {
-    ...typography.title,
+    ...typography.h3,
     color: colors.primaryDark,
   },
   actions: {

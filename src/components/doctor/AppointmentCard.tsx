@@ -1,9 +1,11 @@
 import React from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
-import { CalendarDays, Clock4, Video } from "lucide-react-native";
+import { StyleSheet, Text, View } from "react-native";
+import { CalendarDays, Clock4, UserRound, Video } from "lucide-react-native";
+import { AppCard } from "../ui/AppCard";
+import { FallbackImage } from "../ui/FallbackImage";
 import { Appointment } from "../../types/doctor";
 import { colors } from "../../theme/colors";
-import { radius, shadows, spacing } from "../../theme/spacing";
+import { radius, spacing } from "../../theme/spacing";
 import { typography } from "../../theme/typography";
 
 interface AppointmentCardProps {
@@ -12,8 +14,13 @@ interface AppointmentCardProps {
 
 export function AppointmentCard({ appointment }: AppointmentCardProps) {
   return (
-    <View style={styles.container}>
-      <Image source={{ uri: appointment.doctorImage }} style={styles.avatar} />
+    <AppCard style={styles.container}>
+      <FallbackImage
+        uri={appointment.doctorImage}
+        style={styles.avatar}
+        fallbackIcon={<UserRound size={24} color={colors.primaryDark} />}
+        accessibilityLabel={`${appointment.doctorName} profile picture`}
+      />
       <View style={styles.content}>
         <Text style={styles.name}>{appointment.doctorName}</Text>
         <View style={styles.row}>
@@ -34,25 +41,20 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
       <View style={[styles.status, appointment.status === "Upcoming" ? styles.statusUpcoming : styles.statusDone]}>
         <Text style={styles.statusText}>{appointment.status}</Text>
       </View>
-    </View>
+    </AppCard>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.card,
-    borderRadius: radius.lg,
-    borderColor: colors.border,
-    borderWidth: 1,
     flexDirection: "row",
     alignItems: "center",
     padding: spacing.md,
-    ...shadows.soft,
   },
   avatar: {
     width: 54,
     height: 54,
-    borderRadius: radius.pill,
+    borderRadius: radius.lg,
   },
   content: {
     flex: 1,
@@ -74,7 +76,7 @@ const styles = StyleSheet.create({
     marginLeft: spacing.xs,
     paddingHorizontal: spacing.xs,
     paddingVertical: 3,
-    borderRadius: radius.pill,
+    borderRadius: radius.sm,
     backgroundColor: colors.chip,
     flexDirection: "row",
     alignItems: "center",
@@ -87,7 +89,7 @@ const styles = StyleSheet.create({
   status: {
     paddingHorizontal: spacing.xs,
     paddingVertical: 5,
-    borderRadius: radius.pill,
+    borderRadius: radius.sm,
   },
   statusUpcoming: {
     backgroundColor: colors.chip,

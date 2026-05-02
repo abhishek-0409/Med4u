@@ -1,9 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Alert, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { CalendarDays, Clock3 } from "lucide-react-native";
-import { Button } from "../../components/ui/Button";
+import { CalendarDays, Clock3, UserRound, Video } from "lucide-react-native";
+import { AppButton } from "../../components/ui/AppButton";
+import { AppCard } from "../../components/ui/AppCard";
+import { AppHeader } from "../../components/ui/AppHeader";
+import { FallbackImage } from "../../components/ui/FallbackImage";
 import { Loader } from "../../components/ui/Loader";
+import { SectionTitle } from "../../components/ui/SectionTitle";
 import { doctorService } from "../../services/doctor.service";
 import { useUserStore } from "../../store/userStore";
 import { colors } from "../../theme/colors";
@@ -71,68 +75,102 @@ export function BookDoctorScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerCard}>
-        <CalendarDays size={16} color={colors.primaryDark} />
-        <Text style={styles.headerTitle}>Choose Date</Text>
-      </View>
-
       <FlatList
-        horizontal
-        data={upcomingDates}
-        keyExtractor={(item) => item.toISOString()}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.dateList}
-        renderItem={({ item, index }) => {
-          const active = selectedDate === index;
+        data={filteredSlots}
+        keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+        ListHeaderComponent={
+          <View style={styles.headerContent}>
+            <AppHeader
+              eyebrow="Appointment"
+              title="Pick your consultation slot"
+              subtitle="Choose a date and available video consult time."
+            />
+
+            <AppCard style={styles.doctorCard}>
+              <FallbackImage
+                uri={doctor.image}
+                style={styles.doctorImage}
+                fallbackIcon={<UserRound size={26} color={colors.primaryDark} />}
+                accessibilityLabel={`${doctor.name} profile picture`}
+              />
+              <View style={styles.doctorInfo}>
+                <Text style={styles.doctorName}>{doctor.name}</Text>
+                <Text style={styles.doctorMeta}>{doctor.specialization}</Text>
+                <Text style={styles.doctorPrice}>{formatCurrency(doctor.fee)}</Text>
+              </View>
+              <View style={styles.modePill}>
+                <Video size={14} color={colors.primaryDark} />
+                <Text style={styles.modeText}>Video</Text>
+              </View>
+            </AppCard>
+
+            <SectionTitle title="Choose Date" />
+            <FlatList
+              horizontal
+              data={upcomingDates}
+              keyExtractor={(item) => item.toISOString()}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.dateList}
+              renderItem={({ item, index }) => {
+                const active = selectedDate === index;
+                return (
+                  <Pressable
+                    onPress={() => setSelectedDate(index)}
+                    style={[styles.dateItem, active && styles.dateItemActive]}
+                  >
+                    <Text style={[styles.dateDay, active && styles.dateTextActive]}>
+                      {item.toLocaleDateString("en-US", { weekday: "short" })}
+                    </Text>
+                    <Text style={[styles.dateNum, active && styles.dateTextActive]}>{item.getDate()}</Text>
+                  </Pressable>
+                );
+              }}
+            />
+
+            <SectionTitle title="Choose Time" subtitle="Available slots are highlighted" />
+            <View style={styles.shiftRow}>
+              {(["Morning", "Afternoon", "Evening"] as const).map((shift) => {
+                const active = activeShift === shift;
+                return (
+                  <Pressable
+                    key={shift}
+                    style={[styles.shiftChip, active && styles.shiftChipActive]}
+                    onPress={() => {
+                      setActiveShift(shift);
+                      setSelectedSlot(null);
+                    }}
+                  >
+                    <Text style={[styles.shiftText, active && styles.shiftTextActive]}>{shift}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        }
+        ListEmptyComponent={
+          <AppCard style={styles.emptyCard}>
+            <Clock3 size={24} color={colors.primaryDark} />
+            <Text style={styles.emptyTitle}>No slots available</Text>
+            <Text style={styles.emptyText}>Try another time window for this doctor.</Text>
+          </AppCard>
+        }
+        renderItem={({ item }) => {
+          const active = selectedSlot === item.label;
+          const disabled = !item.available;
+
           return (
             <Pressable
-              onPress={() => setSelectedDate(index)}
-              style={[styles.dateItem, active && styles.dateItemActive]}
-            >
-              <Text style={[styles.dateDay, active && styles.dateDayActive]}>
-                {item.toLocaleDateString("en-US", { weekday: "short" })}
-              </Text>
-              <Text style={[styles.dateNum, active && styles.dateNumActive]}>{item.getDate()}</Text>
-            </Pressable>
-          );
-        }}
-      />
-
-      <View style={styles.headerCard}>
-        <Clock3 size={16} color={colors.primaryDark} />
-        <Text style={styles.headerTitle}>Choose Times</Text>
-      </View>
-
-      <View style={styles.shiftRow}>
-        {(["Morning", "Afternoon", "Evening"] as const).map((shift) => {
-          const active = activeShift === shift;
-          return (
-            <Pressable
-              key={shift}
-              style={[styles.shiftChip, active && styles.shiftChipActive]}
-              onPress={() => setActiveShift(shift)}
-            >
-              <Text style={[styles.shiftText, active && styles.shiftTextActive]}>{shift}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      <View style={styles.slotGrid}>
-        {filteredSlots.map((slot) => {
-          const active = selectedSlot === slot.label;
-          const disabled = !slot.available;
-          return (
-            <Pressable
-              key={slot.id}
               disabled={disabled}
-              onPress={() => setSelectedSlot(slot.label)}
+              onPress={() => setSelectedSlot(item.label)}
               style={[
                 styles.slotItem,
                 active && styles.slotItemActive,
                 disabled && styles.slotItemDisabled,
               ]}
             >
+              <Clock3 size={15} color={active ? colors.white : colors.primaryDark} />
               <Text
                 style={[
                   styles.slotText,
@@ -140,19 +178,29 @@ export function BookDoctorScreen({ navigation, route }: Props) {
                   disabled && styles.slotTextDisabled,
                 ]}
               >
-                {slot.label}
+                {item.label}
               </Text>
             </Pressable>
           );
-        })}
-      </View>
+        }}
+        numColumns={2}
+        columnWrapperStyle={styles.slotRow}
+      />
 
-      <View style={styles.summaryCard}>
-        <Text style={styles.summaryLabel}>Consultation Fee</Text>
+      <AppCard style={styles.summaryCard}>
+        <View>
+          <Text style={styles.summaryLabel}>Consultation Fee</Text>
+          <Text style={styles.summaryMeta}>
+            {selectedSlot ? `Selected ${selectedSlot}` : "Select a slot to continue"}
+          </Text>
+        </View>
         <Text style={styles.summaryFee}>{formatCurrency(doctor.fee)}</Text>
-      </View>
-
-      <Button title="Book Appointment" onPress={onConfirm} />
+        <AppButton
+          title="Book Appointment"
+          leftIcon={<CalendarDays size={18} color={colors.white} />}
+          onPress={onConfirm}
+        />
+      </AppCard>
     </View>
   );
 }
@@ -161,47 +209,82 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  content: {
     padding: spacing.lg,
+    paddingBottom: 188,
     gap: spacing.sm,
   },
-  headerCard: {
+  headerContent: {
+    gap: spacing.md,
+    marginBottom: spacing.xs,
+  },
+  doctorCard: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.xs,
+    gap: spacing.sm,
   },
-  headerTitle: {
-    ...typography.title,
-    fontSize: 16,
+  doctorImage: {
+    width: 64,
+    height: 64,
+    borderRadius: radius.lg,
+  },
+  doctorInfo: {
+    flex: 1,
+    gap: spacing.xxs,
+  },
+  doctorName: {
+    ...typography.bodyBold,
+  },
+  doctorMeta: {
+    ...typography.caption,
+  },
+  doctorPrice: {
+    ...typography.bodyBold,
+    color: colors.primaryDark,
+  },
+  modePill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xxs,
+    borderRadius: radius.sm,
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 6,
+  },
+  modeText: {
+    ...typography.caption,
+    color: colors.primaryDark,
+    fontWeight: "700",
   },
   dateList: {
-    gap: spacing.sm,
-    paddingBottom: spacing.xs,
+    gap: spacing.xs,
+    paddingRight: spacing.lg,
   },
   dateItem: {
     width: 70,
-    borderRadius: radius.md,
+    minHeight: 78,
+    borderRadius: radius.lg,
     backgroundColor: colors.white,
     paddingVertical: spacing.sm,
     alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
     borderColor: colors.border,
     gap: 2,
   },
   dateItemActive: {
-    backgroundColor: colors.primaryDark,
-    borderColor: colors.primaryDark,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   dateDay: {
     ...typography.caption,
-  },
-  dateDayActive: {
-    color: colors.white,
   },
   dateNum: {
     ...typography.title,
     fontSize: 18,
   },
-  dateNumActive: {
+  dateTextActive: {
     color: colors.white,
   },
   shiftRow: {
@@ -210,7 +293,7 @@ const styles = StyleSheet.create({
   },
   shiftChip: {
     flex: 1,
-    borderRadius: radius.pill,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     paddingVertical: spacing.xs,
@@ -218,64 +301,83 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   shiftChipActive: {
-    backgroundColor: colors.primaryDark,
-    borderColor: colors.primaryDark,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   shiftText: {
     ...typography.caption,
     color: colors.text,
+    fontWeight: "600",
   },
   shiftTextActive: {
     color: colors.white,
-    fontWeight: "600",
   },
-  slotGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.xs,
-    paddingBottom: spacing.sm,
+  slotRow: {
+    gap: spacing.sm,
   },
   slotItem: {
-    minWidth: 92,
-    borderRadius: radius.pill,
+    flex: 1,
+    minHeight: 48,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.sm,
     alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: spacing.xs,
     backgroundColor: colors.white,
+    marginBottom: spacing.sm,
   },
   slotItemActive: {
-    backgroundColor: colors.aqua,
-    borderColor: colors.primaryDark,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   slotItemDisabled: {
     backgroundColor: colors.backgroundElevated,
+    opacity: 0.55,
   },
   slotText: {
     ...typography.caption,
     color: colors.text,
+    fontWeight: "700",
   },
   slotTextActive: {
-    color: colors.primaryDark,
-    fontWeight: "600",
+    color: colors.white,
   },
   slotTextDisabled: {
     color: colors.textSubtle,
   },
-  summaryCard: {
-    borderRadius: radius.md,
-    backgroundColor: colors.mint,
-    padding: spacing.md,
-    flexDirection: "row",
-    justifyContent: "space-between",
+  emptyCard: {
     alignItems: "center",
+    gap: spacing.xs,
+  },
+  emptyTitle: {
+    ...typography.bodyBold,
+  },
+  emptyText: {
+    ...typography.caption,
+    textAlign: "center",
+  },
+  summaryCard: {
+    position: "absolute",
+    left: spacing.lg,
+    right: spacing.lg,
+    bottom: spacing.lg,
+    gap: spacing.sm,
   },
   summaryLabel: {
     ...typography.bodyBold,
   },
+  summaryMeta: {
+    ...typography.caption,
+  },
   summaryFee: {
-    ...typography.title,
+    ...typography.h3,
     color: colors.primaryDark,
+    position: "absolute",
+    right: spacing.md,
+    top: spacing.md,
   },
 });

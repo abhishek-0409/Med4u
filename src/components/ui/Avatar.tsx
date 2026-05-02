@@ -1,7 +1,7 @@
-import React from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Image, StyleSheet, View } from "react-native";
+import { UserRound } from "lucide-react-native";
 import { colors } from "../../theme/colors";
-import { radius } from "../../theme/spacing";
 
 interface AvatarProps {
   uri?: string;
@@ -10,31 +10,42 @@ interface AvatarProps {
 }
 
 export function Avatar({ uri, name = "User", size = 46 }: AvatarProps) {
-  if (uri) {
-    return <Image source={{ uri }} style={[styles.image, { width: size, height: size }]} />;
+  const [imageFailed, setImageFailed] = useState(false);
+  const avatarUri = uri?.trim();
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [avatarUri]);
+
+  if (avatarUri && !imageFailed) {
+    return (
+      <Image
+        source={{ uri: avatarUri }}
+        style={[styles.image, { width: size, height: size, borderRadius: size / 2 }]}
+        onError={() => setImageFailed(true)}
+      />
+    );
   }
 
   return (
-    <View style={[styles.fallback, { width: size, height: size }]}>
-      <Text style={styles.initial}>{name.slice(0, 1).toUpperCase()}</Text>
+    <View
+      accessibilityLabel={`${name} default profile picture`}
+      style={[styles.fallback, { width: size, height: size, borderRadius: size / 2 }]}
+    >
+      <UserRound size={Math.max(18, Math.round(size * 0.48))} color={colors.primaryDark} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   image: {
-    borderRadius: radius.pill,
     backgroundColor: colors.border,
   },
   fallback: {
-    borderRadius: radius.pill,
     backgroundColor: colors.primaryLight,
     justifyContent: "center",
     alignItems: "center",
-  },
-  initial: {
-    color: colors.primaryDark,
-    fontWeight: "700",
-    fontSize: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
 });

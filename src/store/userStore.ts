@@ -1,14 +1,23 @@
 import { create } from "zustand";
 import { Appointment } from "../types/doctor";
-import { CartItem, Medicine, Prescription, UserProfile } from "../types/user";
-import { APPOINTMENTS, DEFAULT_PROFILE, PRESCRIPTIONS } from "../utils/constants";
+import { AppSettings, CartItem, Medicine, Prescription, UserProfile } from "../types/user";
+import {
+  APPOINTMENTS,
+  DEFAULT_APP_SETTINGS,
+  DEFAULT_PROFILE,
+  PRESCRIPTIONS,
+} from "../utils/constants";
 
 interface UserState {
   profile: UserProfile;
+  hasCompletedOnboarding: boolean;
+  appSettings: AppSettings;
   cart: CartItem[];
   appointments: Appointment[];
   prescriptions: Prescription[];
   setProfile: (profile: Partial<UserProfile>) => void;
+  completeOnboarding: (profile: Partial<UserProfile>) => void;
+  setAppSettings: (settings: Partial<AppSettings>) => void;
   addToCart: (medicine: Medicine) => void;
   incrementCartItem: (id: string) => void;
   decrementCartItem: (id: string) => void;
@@ -18,12 +27,23 @@ interface UserState {
 
 export const useUserStore = create<UserState>((set) => ({
   profile: DEFAULT_PROFILE,
+  hasCompletedOnboarding: false,
+  appSettings: DEFAULT_APP_SETTINGS,
   cart: [],
   appointments: APPOINTMENTS,
   prescriptions: PRESCRIPTIONS,
   setProfile: (profile) =>
     set((state) => ({
       profile: { ...state.profile, ...profile },
+    })),
+  completeOnboarding: (profile) =>
+    set((state) => ({
+      profile: { ...state.profile, ...profile },
+      hasCompletedOnboarding: true,
+    })),
+  setAppSettings: (settings) =>
+    set((state) => ({
+      appSettings: { ...state.appSettings, ...settings },
     })),
   addToCart: (medicine) =>
     set((state) => {

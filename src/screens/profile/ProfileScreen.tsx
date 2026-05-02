@@ -1,16 +1,23 @@
 import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { LinearGradient } from "expo-linear-gradient";
 import {
   CalendarClock,
+  ChevronRight,
   ClipboardList,
   FlaskConical,
   LogOut,
+  Settings,
+  ShieldCheck,
   ShoppingBag,
+  UserRound,
 } from "lucide-react-native";
 import { AppointmentCard } from "../../components/doctor/AppointmentCard";
+import { AppButton } from "../../components/ui/AppButton";
+import { AppCard } from "../../components/ui/AppCard";
+import { AppHeader } from "../../components/ui/AppHeader";
 import { Avatar } from "../../components/ui/Avatar";
+import { SectionTitle } from "../../components/ui/SectionTitle";
 import { useAuth } from "../../hooks/useAuth";
 import { useUserStore } from "../../store/userStore";
 import { colors } from "../../theme/colors";
@@ -23,64 +30,101 @@ type Props = NativeStackScreenProps<MainStackParamList, "Profile">;
 export function ProfileScreen({ navigation }: Props) {
   const profile = useUserStore((state) => state.profile);
   const appointments = useUserStore((state) => state.appointments);
+  const cartCount = useUserStore((state) => state.cart.reduce((total, item) => total + item.quantity, 0));
+  const prescriptions = useUserStore((state) => state.prescriptions);
   const { logout } = useAuth();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <LinearGradient colors={["#2A8E8A", "#2F9FA4"]} style={styles.headerBg} />
+    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <AppHeader
+        eyebrow="Account"
+        title="My Profile"
+        subtitle="Manage your health records, orders and settings."
+      />
 
-      <View style={styles.profileCard}>
+      <AppCard style={styles.profileCard}>
         <Avatar uri={profile.avatar} name={profile.name} size={84} />
-        <Text style={styles.name}>{profile.name}</Text>
-        <Text style={styles.meta}>{profile.phone}</Text>
-        <Text style={styles.meta}>{profile.email}</Text>
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>Med4U Member</Text>
+        <View style={styles.profileCopy}>
+          <Text style={styles.name}>{profile.name}</Text>
+          <Text style={styles.meta}>{profile.phone}</Text>
+          <Text style={styles.meta}>{profile.email}</Text>
+          <View style={styles.memberPill}>
+            <ShieldCheck size={14} color={colors.primaryDark} />
+            <Text style={styles.memberText}>Med4U Member</Text>
+          </View>
         </View>
-      </View>
+      </AppCard>
 
       <View style={styles.statsRow}>
-        <StatItem label="Height" value="5.8 ft" />
-        <StatItem label="Weight" value="66 kg" />
         <StatItem label="Age" value={String(profile.age)} />
         <StatItem label="Blood" value={profile.bloodGroup} />
+        <StatItem label="Orders" value={String(cartCount)} />
+        <StatItem label="Records" value={String(prescriptions.length)} />
       </View>
 
       {appointments[0] ? (
-        <View style={{ gap: spacing.xs }}>
-          <Text style={styles.sectionTitle}>Upcoming Appointment</Text>
+        <View style={styles.sectionBlock}>
+          <SectionTitle title="Upcoming Appointment" />
           <AppointmentCard appointment={appointments[0]} />
         </View>
       ) : null}
 
-      <View style={styles.menuCard}>
-        <MenuItem
-          label="My Prescriptions"
-          icon={<ClipboardList size={18} color={colors.primaryDark} />}
-          onPress={() => navigation.navigate("Prescription")}
-        />
-        <MenuItem
-          label="Lab Reports"
-          icon={<FlaskConical size={18} color={colors.primaryDark} />}
-          onPress={() => navigation.navigate("Reports")}
-        />
-        <MenuItem
-          label="Medicine Orders"
-          icon={<ShoppingBag size={18} color={colors.primaryDark} />}
-          onPress={() => navigation.navigate("OrderMedicine")}
-        />
-        <MenuItem
-          label="Appointments"
-          icon={<CalendarClock size={18} color={colors.primaryDark} />}
-          onPress={() => navigation.navigate("DoctorList")}
-        />
-        <MenuItem
-          label="Logout"
-          icon={<LogOut size={18} color={colors.danger} />}
-          onPress={logout}
-          danger
-        />
+      <View style={styles.sectionBlock}>
+        <SectionTitle title="Orders" subtitle="Appointments, medicines and diagnostics" />
+        <AppCard style={styles.menuCard}>
+          <MenuItem
+            label="Appointments"
+            meta={`${appointments.length} booked`}
+            icon={<CalendarClock size={18} color={colors.primaryDark} />}
+            onPress={() => navigation.navigate("DoctorList")}
+          />
+          <MenuItem
+            label="Medicine Orders"
+            meta={cartCount ? `${cartCount} item in cart` : "Browse medicines"}
+            icon={<ShoppingBag size={18} color={colors.primaryDark} />}
+            onPress={() => navigation.navigate("OrderMedicine")}
+          />
+          <MenuItem
+            label="Lab Reports"
+            meta="Reports and test status"
+            icon={<FlaskConical size={18} color={colors.primaryDark} />}
+            onPress={() => navigation.navigate("Reports")}
+          />
+          <MenuItem
+            label="Prescriptions"
+            meta={`${prescriptions.length} record${prescriptions.length === 1 ? "" : "s"}`}
+            icon={<ClipboardList size={18} color={colors.primaryDark} />}
+            onPress={() => navigation.navigate("Prescription")}
+            last
+          />
+        </AppCard>
       </View>
+
+      <View style={styles.sectionBlock}>
+        <SectionTitle title="Settings" />
+        <AppCard style={styles.menuCard}>
+          <MenuItem
+            label="Profile Settings"
+            meta="Personal and medical details"
+            icon={<UserRound size={18} color={colors.primaryDark} />}
+            onPress={() => navigation.navigate("ProfileSettings")}
+          />
+          <MenuItem
+            label="App Settings"
+            meta="Notifications and privacy"
+            icon={<Settings size={18} color={colors.primaryDark} />}
+            onPress={() => navigation.navigate("AppSettings")}
+            last
+          />
+        </AppCard>
+      </View>
+
+      <AppButton
+        title="Logout"
+        variant="danger"
+        leftIcon={<LogOut size={18} color={colors.white} />}
+        onPress={logout}
+      />
     </ScrollView>
   );
 }
@@ -96,22 +140,28 @@ function StatItem({ label, value }: { label: string; value: string }) {
 
 function MenuItem({
   label,
+  meta,
   icon,
   onPress,
-  danger,
+  last,
 }: {
   label: string;
+  meta: string;
   icon: React.ReactNode;
   onPress: () => void;
-  danger?: boolean;
+  last?: boolean;
 }) {
   return (
     <Pressable
-      style={({ pressed }) => [styles.menuItem, pressed && { opacity: 0.85 }]}
+      style={({ pressed }) => [styles.menuItem, !last && styles.menuItemBorder, pressed && styles.pressed]}
       onPress={onPress}
     >
       <View style={styles.menuIcon}>{icon}</View>
-      <Text style={[styles.menuLabel, danger && { color: colors.danger }]}>{label}</Text>
+      <View style={styles.menuCopy}>
+        <Text style={styles.menuLabel}>{label}</Text>
+        <Text style={styles.menuMeta}>{meta}</Text>
+      </View>
+      <ChevronRight size={18} color={colors.textSubtle} />
     </Pressable>
   );
 }
@@ -126,41 +176,37 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     paddingBottom: spacing.xxl,
   },
-  headerBg: {
-    height: 164,
-    borderRadius: radius.lg,
-  },
   profileCard: {
-    marginTop: -70,
-    alignSelf: "center",
+    flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.white,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    gap: 4,
-    minWidth: 260,
+    gap: spacing.md,
+  },
+  profileCopy: {
+    flex: 1,
+    gap: spacing.xxs,
   },
   name: {
-    ...typography.title,
-    fontSize: 20,
+    ...typography.h3,
   },
   meta: {
     ...typography.caption,
-    color: colors.textSubtle,
+    color: colors.label,
   },
-  badge: {
-    marginTop: spacing.xs,
-    paddingHorizontal: spacing.sm,
+  memberPill: {
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xxs,
+    borderRadius: radius.sm,
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: spacing.xs,
     paddingVertical: 6,
-    borderRadius: radius.pill,
-    backgroundColor: colors.mint,
+    marginTop: spacing.xs,
   },
-  badgeText: {
+  memberText: {
     ...typography.caption,
     color: colors.primaryDark,
+    fontWeight: "700",
   },
   statsRow: {
     flexDirection: "row",
@@ -169,7 +215,7 @@ const styles = StyleSheet.create({
   statItem: {
     flex: 1,
     backgroundColor: colors.white,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     paddingVertical: spacing.sm,
@@ -178,37 +224,51 @@ const styles = StyleSheet.create({
   },
   statValue: {
     ...typography.bodyBold,
-    color: colors.text,
+    color: colors.primaryDark,
   },
   statLabel: {
     ...typography.caption,
     color: colors.textSubtle,
   },
-  sectionTitle: {
-    ...typography.title,
+  sectionBlock: {
+    gap: spacing.sm,
   },
   menuCard: {
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
+    padding: 0,
     overflow: "hidden",
   },
   menuItem: {
-    minHeight: 56,
+    minHeight: 64,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
     paddingHorizontal: spacing.md,
+  },
+  menuItemBorder: {
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
   menuIcon: {
-    width: 30,
+    width: 38,
+    height: 38,
+    borderRadius: radius.lg,
+    backgroundColor: colors.primaryLight,
     alignItems: "center",
+    justifyContent: "center",
+  },
+  menuCopy: {
+    flex: 1,
+    gap: 2,
   },
   menuLabel: {
     ...typography.bodyBold,
     color: colors.text,
+  },
+  menuMeta: {
+    ...typography.caption,
+    color: colors.textSubtle,
+  },
+  pressed: {
+    opacity: 0.86,
   },
 });

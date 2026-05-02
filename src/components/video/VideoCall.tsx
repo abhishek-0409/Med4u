@@ -1,6 +1,7 @@
 import React from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-import { Mic, MicOff, PhoneOff, Video, Volume2 } from "lucide-react-native";
+import { Mic, MicOff, PhoneOff, UserRound, Video, Volume2 } from "lucide-react-native";
+import { FallbackImage } from "../ui/FallbackImage";
 import { Doctor } from "../../types/doctor";
 import { colors } from "../../theme/colors";
 import { radius, spacing } from "../../theme/spacing";
@@ -16,7 +17,12 @@ interface VideoCallProps {
 export function VideoCall({ doctor, muted, onToggleMute, onEndCall }: VideoCallProps) {
   return (
     <View style={styles.wrapper}>
-      <Image source={{ uri: doctor.image }} style={styles.heroVideo} />
+      <FallbackImage
+        uri={doctor.image}
+        style={styles.heroVideo}
+        fallbackIcon={<UserRound size={86} color={colors.white} />}
+        accessibilityLabel={`${doctor.name} video preview`}
+      />
       <View style={styles.overlay} />
 
       <View style={styles.header}>
@@ -72,7 +78,7 @@ function ControlButton({
       style={({ pressed }) => [
         styles.controlButton,
         danger && styles.controlButtonDanger,
-        pressed && { opacity: 0.8 },
+        pressed && styles.pressed,
       ]}
     >
       {children}
@@ -85,7 +91,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: radius.lg,
     overflow: "hidden",
-    backgroundColor: "#06263A",
+    backgroundColor: colors.text,
   },
   heroVideo: {
     ...StyleSheet.absoluteFillObject,
@@ -135,12 +141,15 @@ const styles = StyleSheet.create({
   controlButton: {
     width: 54,
     height: 54,
-    borderRadius: radius.pill,
+    borderRadius: radius.xl,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.white,
   },
   controlButtonDanger: {
     backgroundColor: colors.danger,
+  },
+  pressed: {
+    opacity: 0.8,
   },
 });

@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -10,16 +9,16 @@ import {
   View,
 } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { LinearGradient } from "expo-linear-gradient";
 import {
   Bell,
   CalendarDays,
+  ChevronRight,
   FileText,
   HeartPulse,
   Home,
-  MessageCircle,
   Pill,
   Search,
+  ShieldCheck,
   Stethoscope,
   TestTube2,
   UserRound,
@@ -27,13 +26,16 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DoctorCard } from "../../components/doctor/DoctorCard";
 import { AppointmentCard } from "../../components/doctor/AppointmentCard";
+import { AppCard } from "../../components/ui/AppCard";
+import { AppHeader } from "../../components/ui/AppHeader";
 import { Avatar } from "../../components/ui/Avatar";
-import { Card } from "../../components/ui/Card";
+import { FallbackImage } from "../../components/ui/FallbackImage";
 import { Loader } from "../../components/ui/Loader";
+import { SectionTitle } from "../../components/ui/SectionTitle";
 import { doctorService } from "../../services/doctor.service";
 import { useUserStore } from "../../store/userStore";
 import { colors } from "../../theme/colors";
-import { radius, spacing } from "../../theme/spacing";
+import { radius, shadows, spacing } from "../../theme/spacing";
 import { typography } from "../../theme/typography";
 import { Doctor } from "../../types/doctor";
 import { MainStackParamList } from "../../types/navigation";
@@ -48,7 +50,12 @@ const actionIcons = {
   DoctorList: Stethoscope,
   OrderMedicine: Pill,
   BookTest: TestTube2,
-  Prescription: CalendarDays,
+} as const;
+
+const actionCopy = {
+  DoctorList: { label: "Doctor", subtitle: "Consult online" },
+  OrderMedicine: { label: "Medicines", subtitle: "Order essentials" },
+  BookTest: { label: "Lab Tests", subtitle: "Book at home" },
 } as const;
 
 export function HomeScreen({ navigation }: Props) {
@@ -58,6 +65,7 @@ export function HomeScreen({ navigation }: Props) {
   const [search, setSearch] = useState("");
   const profile = useUserStore((state) => state.profile);
   const appointments = useUserStore((state) => state.appointments);
+  const firstName = profile.name.split(" ")[0] || "User";
 
   useEffect(() => {
     (async () => {
@@ -68,11 +76,13 @@ export function HomeScreen({ navigation }: Props) {
   }, []);
 
   const filteredFeaturedDoctors = useMemo(() => {
-    if (!search.trim()) {
+    const query = search.trim().toLowerCase();
+    if (!query) {
       return featuredDoctors;
     }
+
     return featuredDoctors.filter((doctor) =>
-      doctor.name.toLowerCase().includes(search.toLowerCase()),
+      `${doctor.name} ${doctor.specialization} ${doctor.category}`.toLowerCase().includes(query),
     );
   }, [featuredDoctors, search]);
 
@@ -86,43 +96,44 @@ export function HomeScreen({ navigation }: Props) {
         style={styles.container}
         contentContainerStyle={[
           styles.content,
-          { paddingTop: insets.top + spacing.sm, paddingBottom: 110 + insets.bottom },
+          { paddingTop: insets.top + spacing.md, paddingBottom: 112 + insets.bottom },
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <LinearGradient colors={["#8DCFCB", "#8FC7DC", "#B9DFEC"]} style={styles.heroCard}>
-          <View style={styles.heroTop}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.greeting}>{getGreeting(profile.name.split(" ")[0])}</Text>
-              <Text style={styles.heroTitle}>Find your doctor</Text>
-              <Text style={styles.heroSub}>Premium care with fast booking</Text>
-            </View>
-            <View style={styles.heroActions}>
-              <Pressable style={styles.iconPill}>
-                <Bell size={16} color={colors.primaryDark} />
+        <AppHeader
+          eyebrow={getGreeting(firstName)}
+          title={`Hello, ${firstName}`}
+          subtitle="Your care, medicines and tests are one tap away."
+          rightElement={
+            <View style={styles.headerActions}>
+              <Pressable style={styles.iconButton}>
+                <Bell size={18} color={colors.primaryDark} />
               </Pressable>
               <Pressable onPress={() => navigation.navigate("Profile")}>
-                <Avatar uri={profile.avatar} name={profile.name} size={46} />
+                <Avatar uri={profile.avatar} name={profile.name} size={48} />
               </Pressable>
             </View>
-          </View>
+          }
+        />
 
-          <View style={styles.searchBar}>
-            <Search size={18} color={colors.textMuted} />
-            <TextInput
-              value={search}
-              onChangeText={setSearch}
-              placeholder="Search doctor, specialization..."
-              placeholderTextColor={colors.textMuted}
-              style={styles.searchInput}
-            />
-          </View>
-        </LinearGradient>
+        <View style={styles.searchBar}>
+          <Search size={18} color={colors.textMuted} />
+          <TextInput
+            value={search}
+            onChangeText={setSearch}
+            placeholder="Search doctors or specializations"
+            placeholderTextColor={colors.placeholder}
+            style={styles.searchInput}
+          />
+        </View>
 
         {appointments[0] ? (
-          <Card style={styles.calloutCard}>
+          <AppCard style={styles.calloutCard}>
             <View style={styles.calloutInfo}>
-              <Text style={styles.calloutLabel}>Upcoming Session</Text>
+              <View style={styles.calloutBadge}>
+                <CalendarDays size={13} color={colors.primaryDark} />
+                <Text style={styles.calloutBadgeText}>Upcoming Session</Text>
+              </View>
               <Text style={styles.calloutName}>{appointments[0].doctorName}</Text>
               <Text style={styles.calloutTime}>
                 {appointments[0].date} - {appointments[0].time}
@@ -132,16 +143,41 @@ export function HomeScreen({ navigation }: Props) {
                 onPress={() => navigation.navigate("VideoConsult", { doctorId: appointments[0].doctorId })}
               >
                 <Text style={styles.calloutButtonText}>Join Call</Text>
+                <ChevronRight size={16} color={colors.white} />
               </Pressable>
             </View>
-            <Image source={{ uri: appointments[0].doctorImage }} style={styles.calloutImage} />
-          </Card>
+            <FallbackImage
+              uri={appointments[0].doctorImage}
+              style={styles.calloutImage}
+              fallbackIcon={<UserRound size={34} color={colors.primaryDark} />}
+              accessibilityLabel={`${appointments[0].doctorName} profile picture`}
+            />
+          </AppCard>
         ) : null}
 
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Categories</Text>
+        <SectionTitle title="Quick Actions" subtitle="Fast access to everyday care" />
+        <View style={styles.quickGrid}>
+          {QUICK_ACTIONS.map((action) => {
+            const Icon = actionIcons[action.route];
+            const copy = actionCopy[action.route];
+
+            return (
+              <Pressable
+                key={action.id}
+                style={({ pressed }) => [styles.quickItem, pressed && styles.pressed]}
+                onPress={() => navigation.navigate(action.route)}
+              >
+                <View style={styles.quickIconWrap}>
+                  <Icon size={20} color={colors.primaryDark} />
+                </View>
+                <Text style={styles.quickLabel}>{copy.label}</Text>
+                <Text style={styles.quickSub}>{copy.subtitle}</Text>
+              </Pressable>
+            );
+          })}
         </View>
 
+        <SectionTitle title="Specialities" actionLabel="All doctors" onActionPress={() => navigation.navigate("DoctorList")} />
         <FlatList
           data={DOCTOR_CATEGORIES}
           keyExtractor={(item) => item}
@@ -152,54 +188,39 @@ export function HomeScreen({ navigation }: Props) {
             const Icon = categoryIcons[index % categoryIcons.length];
             return (
               <Pressable
-                style={styles.categoryChip}
+                style={({ pressed }) => [styles.categoryChip, pressed && styles.pressed]}
                 onPress={() => navigation.navigate("DoctorList", { category: item })}
               >
-                <View style={styles.categoryIconWrap}>
-                  <Icon size={14} color={colors.primaryDark} />
-                </View>
+                <Icon size={15} color={colors.primaryDark} />
                 <Text style={styles.categoryText}>{item}</Text>
               </Pressable>
             );
           }}
         />
 
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-        </View>
+        <AppCard style={styles.trustCard}>
+          <View style={styles.trustIcon}>
+            <ShieldCheck size={20} color={colors.primaryDark} />
+          </View>
+          <View style={styles.trustCopy}>
+            <Text style={styles.trustTitle}>Verified care network</Text>
+            <Text style={styles.trustText}>Top-rated doctors, genuine medicines and certified lab partners.</Text>
+          </View>
+        </AppCard>
 
-        <View style={styles.quickGrid}>
-          {QUICK_ACTIONS.map((action) => {
-            const Icon = actionIcons[action.route];
-            return (
-              <Pressable
-                key={action.id}
-                style={({ pressed }) => [styles.quickItem, pressed && { opacity: 0.85 }]}
-                onPress={() => navigation.navigate(action.route)}
-              >
-                <View style={styles.quickIconWrap}>
-                  <Icon size={18} color={colors.primaryDark} />
-                </View>
-                <Text style={styles.quickLabel}>{action.label}</Text>
-                <Text style={styles.quickSub}>{action.subtitle}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        {appointments[0] ? <AppointmentCard appointment={appointments[0]} /> : null}
-
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Popular Doctors</Text>
-          <Pressable onPress={() => navigation.navigate("DoctorList")}>
-            <Text style={styles.link}>See all</Text>
-          </Pressable>
-        </View>
+        <SectionTitle
+          title="Popular Doctors"
+          subtitle="Available for online consultation"
+          actionLabel="See all"
+          onActionPress={() => navigation.navigate("DoctorList")}
+        />
 
         {filteredFeaturedDoctors.length === 0 ? (
-          <Card>
-            <Text style={styles.emptyText}>No doctors matched your search.</Text>
-          </Card>
+          <AppCard style={styles.emptyCard}>
+            <Search size={22} color={colors.primaryDark} />
+            <Text style={styles.emptyTitle}>No doctors found</Text>
+            <Text style={styles.emptyText}>Try searching by name, specialty or category.</Text>
+          </AppCard>
         ) : (
           <View style={styles.verticalDoctorList}>
             {filteredFeaturedDoctors.map((doctor) => (
@@ -213,12 +234,19 @@ export function HomeScreen({ navigation }: Props) {
             ))}
           </View>
         )}
+
+        {appointments[0] ? (
+          <View style={styles.appointmentBlock}>
+            <SectionTitle title="Appointment Summary" />
+            <AppointmentCard appointment={appointments[0]} />
+          </View>
+        ) : null}
       </ScrollView>
 
-      <View style={[styles.bottomDock, { paddingBottom: insets.bottom > 0 ? insets.bottom : spacing.sm }]}>
+      <View style={[styles.bottomDock, { paddingBottom: insets.bottom > 0 ? insets.bottom : spacing.xs }]}>
         <DockItem label="Home" icon={Home} active />
         <DockItem label="Doctors" icon={Stethoscope} onPress={() => navigation.navigate("DoctorList")} />
-        <DockItem label="Messages" icon={MessageCircle} />
+        <DockItem label="Records" icon={FileText} onPress={() => navigation.navigate("Prescription")} />
         <DockItem label="Profile" icon={UserRound} onPress={() => navigation.navigate("Profile")} />
       </View>
     </View>
@@ -253,48 +281,27 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: spacing.lg,
-    gap: spacing.lg,
-  },
-  heroCard: {
-    borderRadius: radius.lg,
-    padding: spacing.lg,
     gap: spacing.md,
   },
-  heroTop: {
+  headerActions: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    gap: spacing.md,
-  },
-  heroActions: {
     alignItems: "center",
     gap: spacing.xs,
   },
-  iconPill: {
-    width: 32,
-    height: 32,
-    borderRadius: radius.pill,
+  iconButton: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.xl,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.7)",
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.95)",
-  },
-  greeting: {
-    ...typography.caption,
-    color: colors.primaryDark,
-  },
-  heroTitle: {
-    ...typography.h2,
-    marginTop: 2,
-  },
-  heroSub: {
-    ...typography.caption,
-    color: colors.text,
-    marginTop: 2,
+    borderColor: colors.border,
+    ...shadows.soft,
   },
   searchBar: {
-    minHeight: 48,
-    borderRadius: radius.pill,
+    minHeight: 54,
+    borderRadius: radius.xl,
     backgroundColor: colors.white,
     flexDirection: "row",
     alignItems: "center",
@@ -302,10 +309,11 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     borderWidth: 1,
     borderColor: colors.border,
+    ...shadows.soft,
   },
   searchInput: {
     flex: 1,
-    ...typography.body,
+    ...typography.bodyBold,
     color: colors.text,
   },
   calloutCard: {
@@ -317,12 +325,23 @@ const styles = StyleSheet.create({
   },
   calloutInfo: {
     flex: 1,
-    paddingHorizontal: spacing.sm,
-    gap: 4,
+    paddingHorizontal: spacing.xs,
+    gap: spacing.xs,
   },
-  calloutLabel: {
+  calloutBadge: {
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xxs,
+    backgroundColor: colors.primaryLight,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 5,
+  },
+  calloutBadgeText: {
     ...typography.caption,
-    color: "rgba(255,255,255,0.75)",
+    color: colors.primaryDark,
+    fontWeight: "700",
   },
   calloutName: {
     ...typography.title,
@@ -334,98 +353,123 @@ const styles = StyleSheet.create({
   },
   calloutButton: {
     alignSelf: "flex-start",
-    marginTop: spacing.xs,
+    minHeight: 38,
+    marginTop: spacing.xxs,
     paddingHorizontal: spacing.md,
-    paddingVertical: 7,
-    borderRadius: radius.pill,
-    backgroundColor: "rgba(255,255,255,0.2)",
+    borderRadius: radius.lg,
+    backgroundColor: "rgba(255,255,255,0.18)",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.4)",
+    borderColor: "rgba(255,255,255,0.34)",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xxs,
   },
   calloutButtonText: {
     ...typography.caption,
     color: colors.white,
-    fontWeight: "600",
+    fontWeight: "700",
   },
   calloutImage: {
     width: 88,
     height: 96,
-    borderRadius: radius.md,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  sectionTitle: {
-    ...typography.title,
-  },
-  categoryList: {
-    gap: spacing.sm,
-  },
-  categoryChip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.pill,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-  },
-  categoryIconWrap: {
-    width: 22,
-    height: 22,
-    borderRadius: radius.pill,
-    backgroundColor: colors.mint,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  categoryText: {
-    ...typography.caption,
-    color: colors.text,
+    borderRadius: radius.lg,
   },
   quickGrid: {
     flexDirection: "row",
-    gap: spacing.sm,
+    gap: spacing.xs,
   },
   quickItem: {
     flex: 1,
+    minHeight: 128,
     backgroundColor: colors.white,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.sm,
-    gap: spacing.xs,
+    justifyContent: "space-between",
+    ...shadows.soft,
   },
   quickIconWrap: {
-    width: 34,
-    height: 34,
-    borderRadius: radius.pill,
-    backgroundColor: colors.aqua,
+    width: 44,
+    height: 44,
+    borderRadius: radius.xl,
+    backgroundColor: colors.primaryLight,
     alignItems: "center",
     justifyContent: "center",
   },
   quickLabel: {
-    ...typography.caption,
+    ...typography.bodyBold,
     color: colors.text,
-    fontWeight: "600",
   },
   quickSub: {
     ...typography.caption,
     color: colors.textSubtle,
   },
-  link: {
+  categoryList: {
+    gap: spacing.xs,
+    paddingRight: spacing.lg,
+  },
+  categoryChip: {
+    minHeight: 40,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.lg,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  categoryText: {
     ...typography.caption,
-    color: colors.primaryDark,
+    color: colors.text,
+    fontWeight: "600",
+  },
+  trustCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    backgroundColor: colors.primaryLight,
+  },
+  trustIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.xl,
+    backgroundColor: colors.white,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  trustCopy: {
+    flex: 1,
+    gap: spacing.xxs,
+  },
+  trustTitle: {
+    ...typography.bodyBold,
+    color: colors.text,
+  },
+  trustText: {
+    ...typography.caption,
+    color: colors.label,
   },
   verticalDoctorList: {
     gap: spacing.sm,
   },
+  emptyCard: {
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  emptyTitle: {
+    ...typography.bodyBold,
+  },
   emptyText: {
-    ...typography.body,
+    ...typography.caption,
     textAlign: "center",
+  },
+  appointmentBlock: {
+    gap: spacing.sm,
+  },
+  pressed: {
+    opacity: 0.86,
   },
   bottomDock: {
     position: "absolute",
@@ -433,14 +477,15 @@ const styles = StyleSheet.create({
     right: spacing.lg,
     bottom: spacing.md,
     backgroundColor: colors.card,
-    borderRadius: radius.pill,
+    borderRadius: radius.xl,
     borderWidth: 1,
     borderColor: colors.border,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingTop: spacing.xs,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.sm,
+    ...shadows.card,
   },
   dockItem: {
     alignItems: "center",
@@ -451,12 +496,12 @@ const styles = StyleSheet.create({
   dockIcon: {
     width: 34,
     height: 34,
-    borderRadius: radius.pill,
+    borderRadius: radius.lg,
     alignItems: "center",
     justifyContent: "center",
   },
   dockIconActive: {
-    backgroundColor: colors.primaryDark,
+    backgroundColor: colors.primary,
   },
   dockLabel: {
     ...typography.caption,
@@ -464,7 +509,6 @@ const styles = StyleSheet.create({
   },
   dockLabelActive: {
     color: colors.text,
-    fontWeight: "600",
+    fontWeight: "700",
   },
 });
-

@@ -4,8 +4,22 @@ export interface UserProfile {
   phone: string;
   email: string;
   age: number;
+  gender: "Male" | "Female" | "Other";
   bloodGroup: string;
+  existingConditions: string[];
+  allergies: string;
+  emergencyContactName: string;
+  emergencyContactPhone: string;
   avatar: string;
+}
+
+export interface AppSettings {
+  pushNotifications: boolean;
+  appointmentReminders: boolean;
+  medicineReminders: boolean;
+  labReportAlerts: boolean;
+  healthTips: boolean;
+  biometricLock: boolean;
 }
 
 export interface Medicine {

@@ -2,8 +2,8 @@ import React from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Minus, Plus } from "lucide-react-native";
-import { Button } from "../../components/ui/Button";
-import { Card } from "../../components/ui/Card";
+import { AppButton } from "../../components/ui/AppButton";
+import { AppCard } from "../../components/ui/AppCard";
 import { useUserStore } from "../../store/userStore";
 import { colors } from "../../theme/colors";
 import { radius, spacing } from "../../theme/spacing";
@@ -24,15 +24,15 @@ export function CartScreen({ navigation }: Props) {
   if (cart.length === 0) {
     return (
       <View style={styles.emptyWrap}>
-        <Card style={styles.emptyCard}>
+        <AppCard style={styles.emptyCard}>
           <Text style={styles.emptyTitle}>Your cart is empty</Text>
           <Text style={styles.emptyText}>Add medicines to continue with checkout.</Text>
-          <Button
+          <AppButton
             title="Browse Medicines"
             onPress={() => navigation.navigate("OrderMedicine")}
             fullWidth={false}
           />
-        </Card>
+        </AppCard>
       </View>
     );
   }
@@ -44,14 +44,14 @@ export function CartScreen({ navigation }: Props) {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
-          <Card style={styles.itemCard}>
-            <View style={{ flex: 1 }}>
+          <AppCard style={styles.itemCard}>
+            <View style={styles.itemInfo}>
               <Text style={styles.name}>{item.medicine.name}</Text>
               <Text style={styles.meta}>{item.medicine.packSize}</Text>
               <Text style={styles.price}>{formatCurrency(item.medicine.price)}</Text>
             </View>
             <View style={styles.counter}>
-              <Button
+              <AppButton
                 title=""
                 fullWidth={false}
                 variant="outline"
@@ -60,7 +60,7 @@ export function CartScreen({ navigation }: Props) {
                 onPress={() => decrement(item.id)}
               />
               <Text style={styles.qty}>{item.quantity}</Text>
-              <Button
+              <AppButton
                 title=""
                 fullWidth={false}
                 variant="outline"
@@ -69,23 +69,23 @@ export function CartScreen({ navigation }: Props) {
                 onPress={() => increment(item.id)}
               />
             </View>
-          </Card>
+          </AppCard>
         )}
       />
 
-      <Card style={styles.checkoutCard}>
+      <AppCard style={styles.checkoutCard}>
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Total</Text>
           <Text style={styles.totalAmount}>{formatCurrency(total)}</Text>
         </View>
-        <Button
+        <AppButton
           title="Place Order"
           onPress={() => {
             clearCart();
             navigation.navigate("Home");
           }}
         />
-      </Card>
+      </AppCard>
     </View>
   );
 }
@@ -122,6 +122,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
+  itemInfo: {
+    flex: 1,
+  },
   name: {
     ...typography.bodyBold,
   },
@@ -142,7 +145,7 @@ const styles = StyleSheet.create({
     minHeight: 38,
     width: 38,
     paddingHorizontal: 0,
-    borderRadius: radius.pill,
+    borderRadius: radius.lg,
   },
   qty: {
     ...typography.bodyBold,

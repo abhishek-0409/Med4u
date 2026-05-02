@@ -1,5 +1,5 @@
 import { Appointment, Doctor } from "../types/doctor";
-import { LabReport, LabTest, Medicine, Prescription, UserProfile } from "../types/user";
+import { AppSettings, LabReport, LabTest, Medicine, Prescription, UserProfile } from "../types/user";
 
 export const DOCTOR_CATEGORIES = [
   "General",
@@ -21,8 +21,7 @@ export const DOCTORS: Doctor[] = [
     patients: "3.4k+",
     fee: 499,
     location: "Indiranagar, Bengaluru",
-    image:
-      "https://images.pexels.com/photos/7089020/pexels-photo-7089020.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    image: "",
     about:
       "Focused on preventive care, long-term family medicine and digital-first consultation workflows.",
     reviews: [
@@ -61,8 +60,7 @@ export const DOCTORS: Doctor[] = [
     patients: "2.1k+",
     fee: 699,
     location: "Koramangala, Bengaluru",
-    image:
-      "https://images.pexels.com/photos/8460377/pexels-photo-8460377.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    image: "",
     about:
       "Skin, hair and acne specialist with an evidence-based approach and personalized care routines.",
     reviews: [
@@ -99,8 +97,7 @@ export const DOCTORS: Doctor[] = [
     patients: "5.2k+",
     fee: 899,
     location: "HSR Layout, Bengaluru",
-    image:
-      "https://images.pexels.com/photos/5214958/pexels-photo-5214958.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    image: "",
     about:
       "Cardiac consultant with a focus on risk screening, lifestyle interventions and advanced diagnostics.",
     reviews: [
@@ -130,8 +127,8 @@ export const DOCTORS: Doctor[] = [
 ];
 
 export const QUICK_ACTIONS = [
-  { id: "qa-1", label: "Consult", subtitle: "Book doctor", route: "DoctorList" as const },
-  { id: "qa-2", label: "Medicine", subtitle: "Order meds", route: "OrderMedicine" as const },
+  { id: "qa-1", label: "Doctor", subtitle: "Consult online", route: "DoctorList" as const },
+  { id: "qa-2", label: "Medicines", subtitle: "Order essentials", route: "OrderMedicine" as const },
   { id: "qa-3", label: "Lab Tests", subtitle: "Book test", route: "BookTest" as const },
 ];
 
@@ -143,8 +140,7 @@ export const MEDICINES: Medicine[] = [
     dosage: "1 tablet after food",
     packSize: "15 tablets",
     price: 95,
-    image:
-      "https://images.pexels.com/photos/3683074/pexels-photo-3683074.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    image: "",
   },
   {
     id: "med-2",
@@ -153,8 +149,7 @@ export const MEDICINES: Medicine[] = [
     dosage: "1 capsule daily",
     packSize: "10 capsules",
     price: 210,
-    image:
-      "https://images.pexels.com/photos/139398/human-medicine-doses-medical-139398.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    image: "",
   },
   {
     id: "med-3",
@@ -163,8 +158,7 @@ export const MEDICINES: Medicine[] = [
     dosage: "10ml twice daily",
     packSize: "100ml bottle",
     price: 140,
-    image:
-      "https://images.pexels.com/photos/5938353/pexels-photo-5938353.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    image: "",
   },
 ];
 
@@ -215,9 +209,22 @@ export const DEFAULT_PROFILE: UserProfile = {
   phone: "+91 9876543210",
   email: "abhishek@med4u.app",
   age: 29,
+  gender: "Male",
   bloodGroup: "B+",
-  avatar:
-    "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=1200",
+  existingConditions: [],
+  allergies: "",
+  emergencyContactName: "",
+  emergencyContactPhone: "",
+  avatar: "",
+};
+
+export const DEFAULT_APP_SETTINGS: AppSettings = {
+  pushNotifications: true,
+  appointmentReminders: true,
+  medicineReminders: true,
+  labReportAlerts: true,
+  healthTips: false,
+  biometricLock: false,
 };
 
 export const PRESCRIPTIONS: Prescription[] = [
@@ -245,8 +252,7 @@ export const APPOINTMENTS: Appointment[] = [
     id: "ap-1",
     doctorId: "doc-1",
     doctorName: "Dr. Sarah Johnson",
-    doctorImage:
-      "https://images.pexels.com/photos/7089020/pexels-photo-7089020.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    doctorImage: "",
     date: "May 05, 2026",
     time: "09:30 AM",
     mode: "Video",

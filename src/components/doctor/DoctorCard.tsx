@@ -1,10 +1,12 @@
 import React from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-import { Calendar, Star, Users } from "lucide-react-native";
-import { Button } from "../ui/Button";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Calendar, Star, UserRound, Users } from "lucide-react-native";
+import { AppButton } from "../ui/AppButton";
+import { AppCard } from "../ui/AppCard";
+import { FallbackImage } from "../ui/FallbackImage";
 import { Doctor } from "../../types/doctor";
 import { colors } from "../../theme/colors";
-import { radius, shadows, spacing } from "../../theme/spacing";
+import { radius, spacing } from "../../theme/spacing";
 import { typography } from "../../theme/typography";
 import { formatCurrency } from "../../utils/helpers";
 
@@ -23,9 +25,14 @@ export function DoctorCard({
 }: DoctorCardProps) {
   if (variant === "list") {
     return (
-      <View style={styles.listCard}>
+      <AppCard style={styles.listCard}>
         <Pressable style={({ pressed }) => [styles.listInfoWrap, pressed && styles.pressed]} onPress={onPress}>
-          <Image source={{ uri: doctor.image }} style={styles.listImage} />
+          <FallbackImage
+            uri={doctor.image}
+            style={styles.listImage}
+            fallbackIcon={<UserRound size={24} color={colors.primaryDark} />}
+            accessibilityLabel={`${doctor.name} profile picture`}
+          />
           <View style={styles.listInfo}>
             <Text style={styles.listName} numberOfLines={1}>
               {doctor.name}
@@ -36,7 +43,7 @@ export function DoctorCard({
             <View style={styles.listMetaRow}>
               <Star size={13} color={colors.warning} />
               <Text style={styles.listMetaText}>{doctor.rating.toFixed(1)}</Text>
-              <Text style={styles.listMetaDot}>•</Text>
+              <Text style={styles.listMetaDot}>|</Text>
               <Text style={styles.listMetaText}>{doctor.patients}</Text>
             </View>
           </View>
@@ -45,20 +52,25 @@ export function DoctorCard({
         <View style={styles.listRight}>
           <Text style={styles.feeCaption}>Fee</Text>
           <Text style={styles.listFee}>{formatCurrency(doctor.fee)}</Text>
-          <Button
-            title="Book"
+          <AppButton
+            title="Consult Now"
             fullWidth={false}
             size="sm"
             onPress={onBookNow ?? onPress}
           />
         </View>
-      </View>
+      </AppCard>
     );
   }
 
   return (
-    <Pressable style={({ pressed }) => [styles.container, pressed && styles.pressed]} onPress={onPress}>
-      <Image source={{ uri: doctor.image }} style={styles.image} />
+    <AppCard style={styles.container} onPress={onPress}>
+      <FallbackImage
+        uri={doctor.image}
+        style={styles.image}
+        fallbackIcon={<UserRound size={52} color={colors.primaryDark} />}
+        accessibilityLabel={`${doctor.name} profile picture`}
+      />
       <View style={styles.content}>
         <Text style={styles.name}>{doctor.name}</Text>
         <Text style={styles.specialization}>{doctor.specialization}</Text>
@@ -77,23 +89,28 @@ export function DoctorCard({
           </View>
         </View>
         <View style={styles.bottomRow}>
-          <Text style={styles.fee}>{formatCurrency(doctor.fee)}</Text>
+          <View>
+            <Text style={styles.feeCaption}>Consultation</Text>
+            <Text style={styles.fee}>{formatCurrency(doctor.fee)}</Text>
+          </View>
           <Text style={styles.location}>{doctor.location}</Text>
         </View>
+        <AppButton
+          title="Consult Now"
+          size="sm"
+          onPress={onBookNow ?? onPress}
+          style={styles.featuredButton}
+        />
       </View>
-    </Pressable>
+    </AppCard>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     width: 280,
-    backgroundColor: colors.card,
-    borderRadius: radius.lg,
     overflow: "hidden",
-    borderWidth: 1,
-    borderColor: colors.border,
-    ...shadows.card,
+    padding: 0,
   },
   pressed: {
     opacity: 0.92,
@@ -121,10 +138,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: colors.backgroundElevated,
+    backgroundColor: colors.primaryLight,
     paddingHorizontal: spacing.xs,
     paddingVertical: 5,
-    borderRadius: radius.pill,
+    borderRadius: radius.sm,
   },
   metaText: {
     ...typography.caption,
@@ -149,12 +166,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.card,
     padding: spacing.sm,
-    ...shadows.soft,
   },
   listInfoWrap: {
     flex: 1,
@@ -166,7 +178,7 @@ const styles = StyleSheet.create({
   listImage: {
     width: 56,
     height: 56,
-    borderRadius: radius.pill,
+    borderRadius: radius.lg,
   },
   listInfo: {
     flex: 1,
@@ -195,6 +207,7 @@ const styles = StyleSheet.create({
   listRight: {
     alignItems: "flex-end",
     gap: 4,
+    maxWidth: 116,
   },
   feeCaption: {
     ...typography.caption,
@@ -203,5 +216,8 @@ const styles = StyleSheet.create({
   listFee: {
     ...typography.bodyBold,
     color: colors.primaryDark,
+  },
+  featuredButton: {
+    marginTop: spacing.xs,
   },
 });
