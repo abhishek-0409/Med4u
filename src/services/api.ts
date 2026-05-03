@@ -14,7 +14,7 @@ export const SOCKET_URL = __DEV__
 
 export const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 12000,
+  timeout: 60000,
   headers: {
     "Content-Type": "application/json",
   },

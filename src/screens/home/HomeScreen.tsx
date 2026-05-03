@@ -22,6 +22,7 @@ import {
   Stethoscope,
   TestTube2,
   UserRound,
+  Video,
 } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DoctorCard } from "../../components/doctor/DoctorCard";
@@ -140,7 +141,15 @@ export function HomeScreen({ navigation }: Props) {
               </Text>
               <Pressable
                 style={styles.calloutButton}
-                onPress={() => navigation.navigate("VideoConsult", { doctorId: appointments[0].doctorId })}
+                onPress={() => {
+                  const appt = appointments[0];
+                  if (!appt?.id || !appt?.doctorId) return;
+                  navigation.navigate("VideoConsult", {
+                    doctorId: appt.doctorId,
+                    appointmentId: appt.id,
+                    role: "patient",
+                  });
+                }}
               >
                 <Text style={styles.calloutButtonText}>Join Call</Text>
                 <ChevronRight size={16} color={colors.white} />
@@ -157,6 +166,16 @@ export function HomeScreen({ navigation }: Props) {
 
         <SectionTitle title="Quick Actions" subtitle="Fast access to everyday care" />
         <View style={styles.quickGrid}>
+          <Pressable
+            style={({ pressed }) => [styles.quickItem, pressed && styles.pressed]}
+            onPress={() => navigation.navigate("VideoConsult", {} as any)}
+          >
+            <View style={styles.quickIconWrap}>
+              <Video size={20} color={colors.primaryDark} />
+            </View>
+            <Text style={styles.quickLabel}>Video Call</Text>
+            <Text style={styles.quickSub}>Test camera</Text>
+          </Pressable>
           {QUICK_ACTIONS.map((action) => {
             const Icon = actionIcons[action.route];
             const copy = actionCopy[action.route];
