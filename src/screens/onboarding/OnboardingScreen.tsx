@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "../../store/authStore";
 import { useUserStore } from "../../store/userStore";
 import { UserProfile } from "../../types/user";
+import { userService } from "../../services/user.service";
 
 const BACKGROUND = "#EEF4FF";
 const TEAL = "#0F766E";
@@ -167,8 +168,19 @@ export function OnboardingScreen({ navigation, onComplete }: Props) {
     setStep((current) => Math.min(current + 1, 4));
   };
 
-  const finishOnboarding = () => {
+  const finishOnboarding = async () => {
     const formattedPhone = loginPhone ? `+91 ${loginPhone}` : undefined;
+    const birthYear = new Date().getFullYear() - Number(profile.age);
+    const dob = `${birthYear}-01-01`;
+
+    try {
+      await userService.updateProfile({
+        name: profile.fullName.trim(),
+        dob,
+        gender: (profile.gender.toLowerCase() || "other") as "male" | "female" | "other",
+        bloodGroup: profile.bloodGroup || undefined,
+      });
+    } catch (_) {}
 
     onComplete?.(profile);
     completeOnboarding({
@@ -258,7 +270,7 @@ export function OnboardingScreen({ navigation, onComplete }: Props) {
           <TouchableOpacity
             activeOpacity={0.84}
             style={[styles.primaryButton, step > 0 && step < 4 && styles.primaryButtonSplit]}
-            onPress={isFinalStep ? finishOnboarding : goNext}
+            onPress={isFinalStep ? () => { finishOnboarding(); } : goNext}
           >
             <Text style={styles.primaryButtonText}>
               {step === 0 ? "Get Started" : isFinalStep ? "Go to Home" : "Continue"}
