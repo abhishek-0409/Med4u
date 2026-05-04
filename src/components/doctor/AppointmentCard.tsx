@@ -1,9 +1,10 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { CalendarDays, Clock4, UserRound, Video } from "lucide-react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { CalendarDays, Clock4, UserRound, Video, XCircle } from "lucide-react-native";
 import { AppCard } from "../ui/AppCard";
 import { FallbackImage } from "../ui/FallbackImage";
 import { Appointment } from "../../types/doctor";
+import { useUserStore } from "../../store/userStore";
 import { colors } from "../../theme/colors";
 import { radius, spacing } from "../../theme/spacing";
 import { typography } from "../../theme/typography";
@@ -13,6 +14,30 @@ interface AppointmentCardProps {
 }
 
 export function AppointmentCard({ appointment }: AppointmentCardProps) {
+  const cancelAppointment = useUserStore((state) => state.cancelAppointment);
+
+  const handleCancel = () => {
+    Alert.alert(
+      "Cancel Appointment",
+      `Cancel your appointment with ${appointment.doctorName} on ${appointment.date} at ${appointment.time}?`,
+      [
+        { text: "Keep It", style: "cancel" },
+        {
+          text: "Yes, Cancel",
+          style: "destructive",
+          onPress: () => cancelAppointment(appointment.id),
+        },
+      ],
+    );
+  };
+
+  const statusStyle =
+    appointment.status === "Upcoming"
+      ? styles.statusUpcoming
+      : appointment.status === "Cancelled"
+        ? styles.statusCancelled
+        : styles.statusDone;
+
   return (
     <AppCard style={styles.container}>
       <FallbackImage
@@ -38,8 +63,21 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
           )}
         </View>
       </View>
-      <View style={[styles.status, appointment.status === "Upcoming" ? styles.statusUpcoming : styles.statusDone]}>
-        <Text style={styles.statusText}>{appointment.status}</Text>
+      <View style={styles.right}>
+        <View style={[styles.status, statusStyle]}>
+          <Text style={[
+            styles.statusText,
+            appointment.status === "Cancelled" && styles.statusTextCancelled,
+          ]}>
+            {appointment.status}
+          </Text>
+        </View>
+        {appointment.status === "Upcoming" && (
+          <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel} activeOpacity={0.7}>
+            <XCircle size={13} color={colors.danger} />
+            <Text style={styles.cancelText}>Cancel</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </AppCard>
   );
@@ -86,6 +124,10 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.primaryDark,
   },
+  right: {
+    alignItems: "flex-end",
+    gap: spacing.xs,
+  },
   status: {
     paddingHorizontal: spacing.xs,
     paddingVertical: 5,
@@ -97,8 +139,29 @@ const styles = StyleSheet.create({
   statusDone: {
     backgroundColor: colors.backgroundElevated,
   },
+  statusCancelled: {
+    backgroundColor: "#FFEBEE",
+  },
   statusText: {
     ...typography.caption,
     color: colors.primaryDark,
+  },
+  statusTextCancelled: {
+    color: colors.danger,
+  },
+  cancelBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 4,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.danger,
+  },
+  cancelText: {
+    ...typography.caption,
+    color: colors.danger,
+    fontWeight: "600",
   },
 });

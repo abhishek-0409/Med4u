@@ -16,6 +16,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Stethoscope, ChevronRight } from "lucide-react-native";
 import { useAuth } from "../../hooks/useAuth";
 import { AuthStackParamList } from "../../types/navigation";
+import { api } from "../../services/api";
+import { useAuthStore } from "../../store/authStore";
+import { useUserStore } from "../../store/userStore";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Login">;
 
@@ -28,6 +31,27 @@ export function LoginScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const [phone, setPhone] = useState("");
   const { requestOtp, isLoading, error } = useAuth();
+  const devLogin = useAuthStore((s) => s.devLogin);
+  const setAppointments = useUserStore((s) => s.setAppointments);
+
+  const onDevLogin = async () => {
+    try {
+      const { data } = await api.post("/debug/full-setup", { phone: "9999999999" });
+      setAppointments([{
+        id: data.appointmentId,
+        doctorId: data.doctorId,
+        doctorName: data.doctorName,
+        doctorImage: "",
+        date: "Tomorrow",
+        time: "10:00 AM",
+        mode: "Video",
+        status: "Upcoming",
+      }]);
+      devLogin(data.accessToken, data.user.phone);
+    } catch {
+      Alert.alert("Dev Login Failed", "Make sure the backend is running.");
+    }
+  };
 
   const sanitizedPhone = useMemo(
     () => phone.replace(/\D/g, "").slice(0, 10),
@@ -133,6 +157,15 @@ export function LoginScreen({ navigation }: Props) {
             >
               <Text style={styles.helpText}>Need help with login?</Text>
             </Pressable>
+
+            {__DEV__ && (
+              <Pressable
+                style={({ pressed }) => [styles.devBtn, pressed && { opacity: 0.6 }]}
+                onPress={onDevLogin}
+              >
+                <Text style={styles.devBtnText}>⚡ Dev: Skip Login</Text>
+              </Pressable>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -313,5 +346,22 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "700",
     color: TEAL,
+  },
+
+  devBtn: {
+    alignSelf: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: "#FFF3CD",
+    borderWidth: 1,
+    borderColor: "#FFCA28",
+    marginTop: 4,
+  },
+
+  devBtnText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#7B5800",
   },
 });

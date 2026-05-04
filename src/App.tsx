@@ -1,3 +1,6 @@
+import { registerGlobals } from "react-native-webrtc";
+registerGlobals();
+
 import React from "react";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";

@@ -2,12 +2,12 @@ import { Appointment, Doctor } from "../types/doctor";
 import { AppSettings, LabReport, LabTest, Medicine, Prescription, UserProfile } from "../types/user";
 
 export const DOCTOR_CATEGORIES = [
-  "General",
-  "Pediatrics",
   "Cardiology",
-  "Dermatology",
-  "Orthopedic",
+  "Gastroenterology",
   "Neurology",
+  "Orthopedics",
+  "Pulmonology",
+  "Psychiatry",
 ];
 
 export const DOCTORS: Doctor[] = [

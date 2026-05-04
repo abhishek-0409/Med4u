@@ -76,7 +76,7 @@ export function ProfileScreen({ navigation }: Props) {
             label="Appointments"
             meta={`${appointments.length} booked`}
             icon={<CalendarClock size={18} color={colors.primaryDark} />}
-            onPress={() => navigation.navigate("DoctorList")}
+            onPress={() => navigation.navigate("Appointments")}
           />
           <MenuItem
             label="Medicine Orders"

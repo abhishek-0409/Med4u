@@ -1,5 +1,7 @@
 import { create } from "zustand";
+import { isAxiosError } from "axios";
 import { authService } from "../services/auth.service";
+import { useUserStore } from "./userStore";
 
 interface AuthState {
   phone: string;
@@ -10,6 +12,7 @@ interface AuthState {
   setPhone: (phone: string) => void;
   requestOtp: (phone: string) => Promise<void>;
   verifyOtp: (otp: string) => Promise<void>;
+  devLogin: (token: string, phone: string) => void;
   logout: () => void;
 }
 
@@ -26,10 +29,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await authService.requestOtp(phone);
       set({ phone, isLoading: false });
     } catch (error) {
-      set({
-        isLoading: false,
-        error: error instanceof Error ? error.message : "Unable to send OTP.",
-      });
+      const msg = isAxiosError(error)
+        ? (error.response?.data?.message ?? error.message)
+        : "Unable to send OTP.";
+      set({ isLoading: false, error: msg });
       throw error;
     }
   },
@@ -38,19 +41,29 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const result = await authService.verifyOtp({ phone, otp });
+
+      const userStore = useUserStore.getState();
+      if (result.isProfileComplete) {
+        userStore.completeOnboarding({ name: result.user.name, phone: result.user.phone });
+      } else {
+        userStore.setProfile({ phone: result.user.phone });
+      }
+
       set({
         sessionToken: result.token,
         isAuthenticated: true,
         isLoading: false,
       });
     } catch (error) {
-      set({
-        isLoading: false,
-        error: error instanceof Error ? error.message : "OTP verification failed.",
-      });
+      const msg = isAxiosError(error)
+        ? (error.response?.data?.message ?? error.message)
+        : "OTP verification failed.";
+      set({ isLoading: false, error: msg });
       throw error;
     }
   },
+  devLogin: (token, phone) =>
+    set({ sessionToken: token, phone, isAuthenticated: true, error: null }),
   logout: () =>
     set({
       sessionToken: null,

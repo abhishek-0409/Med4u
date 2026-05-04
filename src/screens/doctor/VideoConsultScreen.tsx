@@ -45,9 +45,10 @@ export function VideoConsultScreen({ route, navigation }: Props) {
     endCall,
     error,
   } = useVideoCall({
-    appointmentId: isDemoMode ? "00000000-0000-0000-0000-000000000000" : appointmentId,
+    appointmentId: isDemoMode ? "" : appointmentId,
     role: role ?? "patient",
     onCallEnded: handleCallEnded,
+    isDemo: isDemoMode,
   });
 
   if (!doctor) {

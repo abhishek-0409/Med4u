@@ -11,22 +11,45 @@ import { doctorService } from "../../services/doctor.service";
 import { colors } from "../../theme/colors";
 import { radius, spacing } from "../../theme/spacing";
 import { typography } from "../../theme/typography";
-import { Doctor } from "../../types/doctor";
+import { Doctor, TimeSlot } from "../../types/doctor";
 import { MainStackParamList } from "../../types/navigation";
 import { formatCurrency } from "../../utils/helpers";
 
 type Props = NativeStackScreenProps<MainStackParamList, "DoctorDetail">;
 
+const DEFAULT_SLOTS: TimeSlot[] = [
+  { id: "ds-m1", label: "09:00 AM", period: "Morning", available: true },
+  { id: "ds-m2", label: "09:30 AM", period: "Morning", available: true },
+  { id: "ds-m3", label: "10:00 AM", period: "Morning", available: false },
+  { id: "ds-m4", label: "10:30 AM", period: "Morning", available: true },
+  { id: "ds-m5", label: "11:00 AM", period: "Morning", available: true },
+  { id: "ds-a1", label: "12:30 PM", period: "Afternoon", available: true },
+  { id: "ds-a2", label: "01:00 PM", period: "Afternoon", available: true },
+  { id: "ds-a3", label: "02:00 PM", period: "Afternoon", available: false },
+  { id: "ds-a4", label: "03:00 PM", period: "Afternoon", available: true },
+  { id: "ds-a5", label: "03:30 PM", period: "Afternoon", available: true },
+  { id: "ds-e1", label: "05:00 PM", period: "Evening", available: true },
+  { id: "ds-e2", label: "05:30 PM", period: "Evening", available: true },
+  { id: "ds-e3", label: "06:00 PM", period: "Evening", available: false },
+  { id: "ds-e4", label: "06:30 PM", period: "Evening", available: true },
+  { id: "ds-e5", label: "07:00 PM", period: "Evening", available: true },
+];
+
 export function DoctorDetailScreen({ navigation, route }: Props) {
   const [doctor, setDoctor] = useState<Doctor | undefined>();
+  const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [activeShift, setActiveShift] = useState<"Morning" | "Afternoon" | "Evening">(
     "Afternoon",
   );
 
   useEffect(() => {
     (async () => {
-      const profile = await doctorService.getDoctorById(route.params.doctorId);
+      const [profile, slotData] = await Promise.all([
+        doctorService.getDoctorById(route.params.doctorId),
+        doctorService.getSlots(route.params.doctorId),
+      ]);
       setDoctor(profile);
+      setSlots(slotData.length > 0 ? slotData : DEFAULT_SLOTS);
     })();
   }, [route.params.doctorId]);
 
@@ -34,7 +57,7 @@ export function DoctorDetailScreen({ navigation, route }: Props) {
     return <Loader />;
   }
 
-  const shiftSlots = doctor.slots
+  const shiftSlots = slots
     .filter((slot) => slot.period === activeShift && slot.available)
     .slice(0, 4);
 
@@ -145,7 +168,9 @@ export function DoctorDetailScreen({ navigation, route }: Props) {
           title="Video Consult"
           variant="outline"
           leftIcon={<Video size={18} color={colors.primaryDark} />}
-          onPress={() => navigation.navigate("VideoConsult", { doctorId: doctor.id })}
+          // Video calls are tied to a booked appointment.
+          // Navigate to BookDoctor first; deep-link to VideoConsult from the appointment.
+          onPress={() => navigation.navigate("BookDoctor", { doctorId: doctor.id })}
         />
       </View>
     </ScrollView>

@@ -10,6 +10,7 @@ import { CartScreen } from "../screens/medicine/CartScreen";
 import { BookTestScreen } from "../screens/lab/BookTestScreen";
 import { ReportsScreen } from "../screens/lab/ReportsScreen";
 import { PrescriptionScreen } from "../screens/prescription/PrescriptionScreen";
+import { AppointmentsScreen } from "../screens/profile/AppointmentsScreen";
 import { AppSettingsScreen } from "../screens/profile/AppSettingsScreen";
 import { ProfileScreen } from "../screens/profile/ProfileScreen";
 import { ProfileSettingsScreen } from "../screens/profile/ProfileSettingsScreen";
@@ -64,6 +65,7 @@ export function MainNavigator() {
         component={PrescriptionScreen}
         options={{ title: "Prescriptions" }}
       />
+      <Stack.Screen name="Appointments" component={AppointmentsScreen} options={{ title: "My Appointments" }} />
       <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: "My Profile" }} />
       <Stack.Screen
         name="ProfileSettings"

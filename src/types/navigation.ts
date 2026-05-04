@@ -8,12 +8,13 @@ export type MainStackParamList = {
   DoctorList: { category?: string } | undefined;
   DoctorDetail: { doctorId: string };
   BookDoctor: { doctorId: string };
-  VideoConsult: { doctorId: string };
+  VideoConsult: { doctorId: string; appointmentId: string; role: 'patient' | 'doctor' };
   OrderMedicine: undefined;
   Cart: undefined;
   BookTest: undefined;
   Reports: undefined;
   Prescription: undefined;
+  Appointments: undefined;
   Profile: undefined;
   ProfileSettings: undefined;
   AppSettings: undefined;

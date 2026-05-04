@@ -19,6 +19,24 @@ import { formatCurrency } from "../../utils/helpers";
 
 type Props = NativeStackScreenProps<MainStackParamList, "BookDoctor">;
 
+const DEFAULT_SLOTS: TimeSlot[] = [
+  { id: "ds-m1", label: "09:00 AM", period: "Morning", available: true },
+  { id: "ds-m2", label: "09:30 AM", period: "Morning", available: true },
+  { id: "ds-m3", label: "10:00 AM", period: "Morning", available: false },
+  { id: "ds-m4", label: "10:30 AM", period: "Morning", available: true },
+  { id: "ds-m5", label: "11:00 AM", period: "Morning", available: true },
+  { id: "ds-a1", label: "12:30 PM", period: "Afternoon", available: true },
+  { id: "ds-a2", label: "01:00 PM", period: "Afternoon", available: true },
+  { id: "ds-a3", label: "02:00 PM", period: "Afternoon", available: false },
+  { id: "ds-a4", label: "03:00 PM", period: "Afternoon", available: true },
+  { id: "ds-a5", label: "03:30 PM", period: "Afternoon", available: true },
+  { id: "ds-e1", label: "05:00 PM", period: "Evening", available: true },
+  { id: "ds-e2", label: "05:30 PM", period: "Evening", available: true },
+  { id: "ds-e3", label: "06:00 PM", period: "Evening", available: false },
+  { id: "ds-e4", label: "06:30 PM", period: "Evening", available: true },
+  { id: "ds-e5", label: "07:00 PM", period: "Evening", available: true },
+];
+
 export function BookDoctorScreen({ navigation, route }: Props) {
   const [doctor, setDoctor] = useState<Doctor | undefined>();
   const [slots, setSlots] = useState<TimeSlot[]>([]);
@@ -36,7 +54,7 @@ export function BookDoctorScreen({ navigation, route }: Props) {
         doctorService.getSlots(route.params.doctorId),
       ]);
       setDoctor(doctorData);
-      setSlots(slotData);
+      setSlots(slotData.length > 0 ? slotData : DEFAULT_SLOTS);
     })();
   }, [route.params.doctorId]);
 

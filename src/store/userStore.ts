@@ -23,6 +23,8 @@ interface UserState {
   decrementCartItem: (id: string) => void;
   clearCart: () => void;
   addAppointment: (appointment: Appointment) => void;
+  setAppointments: (appointments: Appointment[]) => void;
+  cancelAppointment: (id: string) => void;
 }
 
 export const useUserStore = create<UserState>((set) => ({
@@ -30,7 +32,7 @@ export const useUserStore = create<UserState>((set) => ({
   hasCompletedOnboarding: false,
   appSettings: DEFAULT_APP_SETTINGS,
   cart: [],
-  appointments: APPOINTMENTS,
+  appointments: [],
   prescriptions: PRESCRIPTIONS,
   setProfile: (profile) =>
     set((state) => ({
@@ -82,5 +84,12 @@ export const useUserStore = create<UserState>((set) => ({
   addAppointment: (appointment) =>
     set((state) => ({
       appointments: [appointment, ...state.appointments],
+    })),
+  setAppointments: (appointments) => set({ appointments }),
+  cancelAppointment: (id) =>
+    set((state) => ({
+      appointments: state.appointments.map((apt) =>
+        apt.id === id ? { ...apt, status: "Cancelled" as const } : apt,
+      ),
     })),
 }));

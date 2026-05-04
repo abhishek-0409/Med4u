@@ -39,5 +39,5 @@ export interface Appointment {
   date: string;
   time: string;
   mode: "Video" | "Clinic";
-  status: "Upcoming" | "Completed";
+  status: "Upcoming" | "Completed" | "Cancelled";
 }
